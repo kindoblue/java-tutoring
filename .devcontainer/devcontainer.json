@@ -1,0 +1,25 @@
+{
+  "name": "Devbox Remote Container",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/tutoring",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "java.server.launchMode": "Standard",
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "automatic"
+      },
+      "extensions": [
+        "jetpack-io.devbox",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-java-debug",
+        "vscjava.vscode-java-test",
+        "vscjava.vscode-maven",
+        "redhat.java"
+      ]
+    }
+  },
+  "remoteUser": "devbox",
+  "postCreateCommand": "PGPASSWORD=postgres psql -h db -U postgres -f .devcontainer/schema.sql"
+}
