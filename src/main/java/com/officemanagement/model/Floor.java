@@ -1,5 +1,6 @@
 package com.officemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,7 +20,8 @@ public class Floor {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "floor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "floor", fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("floor")
     private List<OfficeRoom> rooms;
 
     public Long getId() {

@@ -16,7 +16,8 @@
         "vscjava.vscode-java-debug",
         "vscjava.vscode-java-test",
         "vscjava.vscode-maven",
-        "redhat.java"
+        "redhat.java",
+        "ms-azuretools.vscode-docker"
       ]
     }
   },

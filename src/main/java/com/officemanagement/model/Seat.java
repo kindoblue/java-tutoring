@@ -1,5 +1,6 @@
 package com.officemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class Seat {
 
     @ManyToOne
     @JoinColumn(name = "room_id")
+    @JsonIgnoreProperties("seats")
     private OfficeRoom room;
 
     @Column(name = "seat_number")
@@ -23,5 +25,43 @@ public class Seat {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public OfficeRoom getRoom() {
+        return room;
+    }
+
+    public void setRoom(OfficeRoom room) {
+        this.room = room;
+    }
+
+    public String getSeatNumber() {
+        return seatNumber;
+    }
+
+    public void setSeatNumber(String seatNumber) {
+        this.seatNumber = seatNumber;
+    }
+
+    public boolean isOccupied() {
+        return isOccupied;
+    }
+
+    public void setOccupied(boolean occupied) {
+        isOccupied = occupied;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 } 
