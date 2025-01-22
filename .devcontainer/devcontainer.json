@@ -21,5 +21,5 @@
     }
   },
   "remoteUser": "devbox",
-  "postCreateCommand": "PGPASSWORD=postgres psql -h db -U postgres -f .devcontainer/schema.sql"
+  "postCreateCommand": "until pg_isready -h db -U postgres; do sleep 1; done && PGPASSWORD=postgres psql -h db -U postgres -f .devcontainer/schema.sql"
 }

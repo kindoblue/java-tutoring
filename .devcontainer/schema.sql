@@ -13,6 +13,7 @@ CREATE TABLE floors (
 CREATE TABLE office_rooms (
     id BIGSERIAL PRIMARY KEY,
     room_number VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     floor_id BIGINT REFERENCES floors(id),
     created_at TIMESTAMP
 );
