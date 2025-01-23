@@ -74,7 +74,7 @@
     <h2>Floors</h2>
     <div class="endpoint">
         <span class="method get">GET</span>
-        <a href="/officemanagement/api/floors" target="_blank">View All Floors</a>
+        <a href="/api/floors" target="_blank">View All Floors</a>
         <p>Returns a list of all floors with their rooms and seats.</p>
     </div>
 
@@ -91,15 +91,15 @@
         
         <h4>1. Get All Seats in a Room</h4>
         <div class="command-description">Retrieve all seats for a specific room:</div>
-        <pre>curl -X GET http://localhost:8080/officemanagement/api/rooms/{roomId}/seats</pre>
+        <pre>curl -X GET http://localhost:8080/api/rooms/{roomId}/seats</pre>
 
         <h4>2. Get Specific Seat</h4>
         <div class="command-description">Get details of a specific seat:</div>
-        <pre>curl -X GET http://localhost:8080/officemanagement/api/seats/{seatId}</pre>
+        <pre>curl -X GET http://localhost:8080/api/seats/{seatId}</pre>
 
         <h4>3. Create New Seat</h4>
         <div class="command-description">Add a new seat to a room:</div>
-        <pre>curl -X POST http://localhost:8080/officemanagement/api/seats \
+        <pre>curl -X POST http://localhost:8080/api/seats \
 -H "Content-Type: application/json" \
 -d '{
     "seatNumber": "801-05",
@@ -109,7 +109,7 @@
 
         <h4>4. Update Seat (Mark as Occupied/Unoccupied)</h4>
         <div class="command-description">Update a seat's status:</div>
-        <pre>curl -X PUT http://localhost:8080/officemanagement/api/seats/{seatId} \
+        <pre>curl -X PUT http://localhost:8080/api/seats/{seatId} \
 -H "Content-Type: application/json" \
 -d '{
     "id": {seatId},
@@ -120,12 +120,12 @@
 
         <h4>5. Quick Occupy/Unoccupy Seat</h4>
         <div class="command-description">Quickly change seat occupation status:</div>
-        <pre>curl -X PUT http://localhost:8080/officemanagement/api/seats/{seatId}/occupy</pre>
-        <pre>curl -X PUT http://localhost:8080/officemanagement/api/seats/{seatId}/vacate</pre>
+        <pre>curl -X PUT http://localhost:8080/api/seats/{seatId}/occupy</pre>
+        <pre>curl -X PUT http://localhost:8080/api/seats/{seatId}/vacate</pre>
 
         <h4>6. Delete Seat</h4>
         <div class="command-description">Remove a seat from the system:</div>
-        <pre>curl -X DELETE http://localhost:8080/officemanagement/api/seats/{seatId}</pre>
+        <pre>curl -X DELETE http://localhost:8080/api/seats/{seatId}</pre>
 
         <div class="command-description">
             Note: Replace {roomId}, {seatId} with actual IDs. For example, use 1, 2, etc.
@@ -136,7 +136,7 @@
         function viewFloor() {
             const floorId = prompt('Enter Floor ID:');
             if (floorId) {
-                window.open(`/officemanagement/api/floors/${floorId}`, '_blank');
+                window.open(`/api/floors/${floorId}`, '_blank');
             }
         }
     </script>

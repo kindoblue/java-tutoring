@@ -95,7 +95,7 @@
                             <type>war</type>
                             <location>${project.build.directory}/${project.build.finalName}.war</location>
                             <properties>
-                                <context>/officemanagement</context>
+                                <context>/</context>
                             </properties>
                         </deployable>
                     </deployables>
