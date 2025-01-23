@@ -23,7 +23,9 @@ public class FloorResource {
     @GET
     public Response getAllFloors() {
         try (Session session = sessionFactory.openSession()) {
-            List<Floor> floors = session.createQuery("from Floor", Floor.class).list();
+            List<Floor> floors = session.createQuery(
+                "select new Floor(f.id, f.name, f.floorNumber) from Floor f", 
+                Floor.class).list();
             return Response.ok(floors).build();
         }
     }
@@ -32,7 +34,15 @@ public class FloorResource {
     @Path("/{id}")
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
-            Floor floor = session.get(Floor.class, id);
+            // Using criteria to fetch the floor and its associations
+            Floor floor = session.createQuery(
+                "select distinct f from Floor f " +
+                "left join fetch f.rooms r " +
+                "left join fetch r.seats " +
+                "where f.id = :id", Floor.class)
+                .setParameter("id", id)
+                .uniqueResult();
+                
             if (floor == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }

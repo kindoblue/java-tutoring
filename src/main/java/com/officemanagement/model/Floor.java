@@ -3,7 +3,8 @@ package com.officemanagement.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "floors")
@@ -22,7 +23,17 @@ public class Floor {
 
     @OneToMany(mappedBy = "floor", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("floor")
-    private List<OfficeRoom> rooms;
+    private Set<OfficeRoom> rooms = new HashSet<>();
+
+    // Default constructor required by JPA/Hibernate
+    public Floor() {
+    }
+
+    public Floor(Long id, String name, Integer level) {
+        this.id = id;
+        this.name = name;
+        this.floorNumber = level;
+    }
 
     public Long getId() {
         return id;
@@ -56,11 +67,11 @@ public class Floor {
         this.createdAt = createdAt;
     }
 
-    public List<OfficeRoom> getRooms() {
+    public Set<OfficeRoom> getRooms() {
         return rooms;
     }
 
-    public void setRooms(List<OfficeRoom> rooms) {
+    public void setRooms(Set<OfficeRoom> rooms) {
         this.rooms = rooms;
     }
 } 
