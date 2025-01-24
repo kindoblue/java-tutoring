@@ -18,7 +18,8 @@
         "vscjava.vscode-maven",
         "redhat.java",
         "ms-azuretools.vscode-docker",
-        "ckolkman.vscode-postgres"
+        "ckolkman.vscode-postgres",
+        "humao.rest-client"
       ]
     }
   },

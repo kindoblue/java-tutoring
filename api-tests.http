@@ -1,0 +1,21 @@
+### Get all floors
+GET http://localhost:8080/api/floors
+
+### Get specific floor
+GET http://localhost:8080/api/floors/1
+
+### Get room seats
+GET http://localhost:8080/api/rooms/1/seats
+
+### Get specific seat
+GET http://localhost:8080/api/seats/1
+
+### Create new seat
+POST http://localhost:8080/api/seats
+Content-Type: application/json
+
+{
+    "seatNumber": "801-05",
+    "room": {"id": 1},
+    "occupied": false
+} 
