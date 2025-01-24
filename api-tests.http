@@ -15,7 +15,13 @@ POST http://localhost:8080/api/seats
 Content-Type: application/json
 
 {
-    "seatNumber": "801-05",
+    "seatNumber": "101-05",
     "room": {"id": 1},
     "occupied": false
-} 
+}
+
+### Occupy a seat
+PATCH http://localhost:8080/api/seats/1/occupy?occupied=true
+
+### Free up a seat
+PATCH http://localhost:8080/api/seats/1/occupy?occupied=false 
