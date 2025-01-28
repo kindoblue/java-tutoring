@@ -62,23 +62,4 @@ public class SeatResource {
                 .build();
         }
     }
-
-    @PATCH
-    @Path("/{id}/occupy")
-    public Response updateSeatOccupation(@PathParam("id") Long id, @QueryParam("occupied") Boolean occupied) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            
-            Seat seat = session.get(Seat.class, id);
-            if (seat == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-            
-            seat.setOccupied(occupied);
-            session.update(seat);
-            session.getTransaction().commit();
-            
-            return Response.ok(seat).build();
-        }
-    }
 } 

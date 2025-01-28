@@ -16,12 +16,26 @@ Content-Type: application/json
 
 {
     "seatNumber": "101-05",
-    "room": {"id": 1},
-    "occupied": false
+    "room": {"id": 1}
 }
 
-### Occupy a seat
-PATCH http://localhost:8080/api/seats/1/occupy?occupied=true
+### Get all employees with their seat assignments
+GET http://localhost:8080/api/employees
 
-### Free up a seat
-PATCH http://localhost:8080/api/seats/1/occupy?occupied=false 
+### Get specific employee with seat information
+GET http://localhost:8080/api/employees/1
+
+### Create new employee
+POST http://localhost:8080/api/employees
+Content-Type: application/json
+
+{
+    "fullName": "Mark Johnson",
+    "occupation": "Software Engineer"
+}
+
+### Assign seat to employee
+PUT http://localhost:8080/api/employees/1/assign-seat/1
+
+### Unassign seat from employee
+DELETE http://localhost:8080/api/employees/1/unassign-seat 

@@ -5,10 +5,11 @@ CREATE DATABASE office_management;
 
 -- Drop tables if they exist (in correct order due to foreign keys)
 DROP TABLE IF EXISTS seats;
+DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS office_rooms;
 DROP TABLE IF EXISTS floors;
 
--- Create tables
+-- Create tables in correct order (no forward references)
 CREATE TABLE floors (
     id BIGSERIAL PRIMARY KEY,
     floor_number INTEGER NOT NULL,
@@ -24,15 +25,23 @@ CREATE TABLE office_rooms (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE employees (
+    id BIGSERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    occupation VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE seats (
     id BIGSERIAL PRIMARY KEY,
     seat_number VARCHAR(255) NOT NULL,
     room_id BIGINT REFERENCES office_rooms(id),
-    is_occupied BOOLEAN DEFAULT false,
+    employee_id BIGINT REFERENCES employees(id) -- UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert floors
+-- Insert sample data in correct order
+-- 1. First, insert floors
 INSERT INTO floors (floor_number, name) VALUES
 (1, 'First Floor'),
 (2, 'Second Floor'),
@@ -44,7 +53,7 @@ INSERT INTO floors (floor_number, name) VALUES
 (8, 'Eighth Floor'),
 (9, 'Ninth Floor');
 
--- Insert rooms for each floor
+-- 2. Then, insert rooms for each floor
 DO $$
 DECLARE
     floor_record RECORD;
@@ -63,7 +72,15 @@ BEGIN
     END LOOP;
 END $$;
 
--- Insert seats for each room
+-- 3. Insert some sample employees
+INSERT INTO employees (full_name, occupation) VALUES
+('John Doe', 'Software Engineer'),
+('Jane Smith', 'Product Manager'),
+('Bob Wilson', 'UX Designer'),
+('Alice Brown', 'Data Scientist'),
+('Charlie Davis', 'DevOps Engineer');
+
+-- 4. Finally, insert seats for each room
 DO $$
 DECLARE
     room_record RECORD;

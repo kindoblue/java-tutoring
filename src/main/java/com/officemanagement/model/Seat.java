@@ -19,11 +19,19 @@ public class Seat {
     @Column(name = "seat_number")
     private String seatNumber;
 
-    @Column(name = "is_occupied")
-    private boolean isOccupied;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToOne
+    @JoinColumn(name = "employee_id")
+    @JsonIgnoreProperties("seat")
+    private Employee employee;
+
+    // Add a convenience method to check if seat is occupied
+    @Transient
+    public boolean isOccupied() {
+        return employee != null;
+    }
 
     public Long getId() {
         return id;
@@ -49,19 +57,19 @@ public class Seat {
         this.seatNumber = seatNumber;
     }
 
-    public boolean isOccupied() {
-        return isOccupied;
-    }
-
-    public void setOccupied(boolean occupied) {
-        isOccupied = occupied;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 } 
