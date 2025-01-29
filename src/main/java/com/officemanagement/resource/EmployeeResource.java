@@ -27,7 +27,7 @@ public class EmployeeResource {
         try (Session session = sessionFactory.openSession()) {
             List<Employee> employees = session.createQuery(
                 "select distinct e from Employee e " +
-                "left join fetch e.seat s " +
+                "left join fetch e.seats s " +
                 "left join fetch s.room r", 
                 Employee.class).list();
             return Response.ok(employees).build();
@@ -40,7 +40,7 @@ public class EmployeeResource {
         try (Session session = sessionFactory.openSession()) {
             Employee employee = session.createQuery(
                 "select distinct e from Employee e " +
-                "left join fetch e.seat s " +
+                "left join fetch e.seats s " +
                 "left join fetch s.room r " +
                 "where e.id = :id", 
                 Employee.class)
@@ -81,13 +81,13 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
             }
 
+            // Check if seat is already occupied
             if (seat.getEmployee() != null) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Seat is already occupied").build();
             }
 
-            // Set both sides of the bidirectional relationship
-            seat.setEmployee(employee);
-            employee.setSeat(seat);
+            // Add seat to employee's seats
+            employee.addSeat(seat);
             
             // Update both entities
             session.update(seat);
@@ -100,8 +100,8 @@ public class EmployeeResource {
     }
 
     @DELETE
-    @Path("/{id}/unassign-seat")
-    public Response unassignSeat(@PathParam("id") Long employeeId) {
+    @Path("/{employeeId}/unassign-seat/{seatId}")
+    public Response unassignSeat(@PathParam("employeeId") Long employeeId, @PathParam("seatId") Long seatId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             
@@ -110,8 +110,21 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Employee not found").build();
             }
 
-            employee.setSeat(null);
+            Seat seat = session.get(Seat.class, seatId);
+            if (seat == null) {
+                return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
+            }
+
+            // Check if this seat belongs to the employee
+            if (seat.getEmployee() == null || !seat.getEmployee().getId().equals(employeeId)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("This seat is not assigned to the employee").build();
+            }
+
+            employee.removeSeat(seat);
+            
+            session.update(seat);
             session.update(employee);
+            
             session.getTransaction().commit();
             
             return Response.ok(employee).build();

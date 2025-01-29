@@ -3,6 +3,8 @@ package com.officemanagement.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "employees")
@@ -16,9 +18,9 @@ public class Employee {
 
     private String occupation;
 
-    @OneToOne(mappedBy = "employee")
+    @OneToMany(mappedBy = "employee")
     @JsonIgnoreProperties("employee")
-    private Seat seat;
+    private Set<Seat> seats = new HashSet<>();
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -51,12 +53,22 @@ public class Employee {
         this.occupation = occupation;
     }
 
-    public Seat getSeat() {
-        return seat;
+    public Set<Seat> getSeats() {
+        return seats;
     }
 
-    public void setSeat(Seat seat) {
-        this.seat = seat;
+    public void setSeats(Set<Seat> seats) {
+        this.seats = seats;
+    }
+
+    public void addSeat(Seat seat) {
+        seats.add(seat);
+        seat.setEmployee(this);
+    }
+
+    public void removeSeat(Seat seat) {
+        seats.remove(seat);
+        seat.setEmployee(null);
     }
 
     public LocalDateTime getCreatedAt() {

@@ -22,9 +22,9 @@ public class Seat {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "employee_id")
-    @JsonIgnoreProperties("seat")
+    @JsonIgnoreProperties("seats")
     private Employee employee;
 
     // Add a convenience method to check if seat is occupied
