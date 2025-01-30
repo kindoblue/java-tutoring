@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashMap;
 
 @Path("/employees")
 @Produces(MediaType.APPLICATION_JSON)
@@ -128,6 +129,47 @@ public class EmployeeResource {
             session.getTransaction().commit();
             
             return Response.ok(employee).build();
+        }
+    }
+
+    @GET
+    @Path("/search")
+    public Response searchEmployees(
+            @QueryParam("search") @DefaultValue("") String searchTerm,
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("10") int size) {
+        try (Session session = sessionFactory.openSession()) {
+            // Create the base query for total count
+            String countQuery = "select count(distinct e) from Employee e " +
+                    "where lower(e.fullName) like lower(:searchTerm) " +
+                    "or lower(e.occupation) like lower(:searchTerm)";
+            
+            Long totalElements = session.createQuery(countQuery, Long.class)
+                    .setParameter("searchTerm", "%" + searchTerm + "%")
+                    .uniqueResult();
+
+            // Create the main query with pagination
+            String query = "select distinct e from Employee e " +
+                    "left join fetch e.seats s " +
+                    "left join fetch s.room r " +
+                    "where lower(e.fullName) like lower(:searchTerm) " +
+                    "or lower(e.occupation) like lower(:searchTerm)";
+
+            List<Employee> employees = session.createQuery(query, Employee.class)
+                    .setParameter("searchTerm", "%" + searchTerm + "%")
+                    .setFirstResult(page * size)
+                    .setMaxResults(size)
+                    .list();
+
+            // Create a response object with pagination metadata
+            var response = new HashMap<String, Object>();
+            response.put("content", employees);
+            response.put("totalElements", totalElements);
+            response.put("totalPages", (int) Math.ceil(totalElements / (double) size));
+            response.put("currentPage", page);
+            response.put("size", size);
+
+            return Response.ok(response).build();
         }
     }
 } 

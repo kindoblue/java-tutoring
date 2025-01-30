@@ -35,7 +35,13 @@ Content-Type: application/json
 }
 
 ### Assign seat to employee
-PUT http://localhost:8080/api/employees/1/assign-seat/1
+PUT http://localhost:8080/api/employees/1/assign-seat/2
 
 ### Unassign seat from employee
-DELETE http://localhost:8080/api/employees/1/unassign-seat 
+DELETE http://localhost:8080/api/employees/1/unassign-seat
+
+### Search employees with pagination and filtering
+GET http://localhost:8080/api/employees/search?search=engineer&page=0&size=10
+
+### Search employees - empty search term (returns all with pagination)
+GET http://localhost:8080/api/employees/search?page=1&size=5 
