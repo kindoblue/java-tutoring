@@ -36,7 +36,7 @@ CREATE TABLE seats (
     id BIGSERIAL PRIMARY KEY,
     seat_number VARCHAR(255) NOT NULL,
     room_id BIGINT REFERENCES office_rooms(id),
-    employee_id BIGINT REFERENCES employees(id) -- UNIQUE,
+    employee_id BIGINT REFERENCES employees(id), -- add UNIQUE if the employee can only have one seat
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -72,15 +72,7 @@ BEGIN
     END LOOP;
 END $$;
 
--- 3. Insert some sample employees
-INSERT INTO employees (full_name, occupation) VALUES
-('John Doe', 'Software Engineer'),
-('Jane Smith', 'Product Manager'),
-('Bob Wilson', 'UX Designer'),
-('Alice Brown', 'Data Scientist'),
-('Charlie Davis', 'DevOps Engineer');
-
--- 4. Finally, insert seats for each room
+-- 3. Insert seats for each room
 DO $$
 DECLARE
     room_record RECORD;
@@ -97,3 +89,83 @@ BEGIN
         END LOOP;
     END LOOP;
 END $$; 
+
+
+-- 4. Finally some employee data
+INSERT INTO employees (full_name, occupation, created_at) VALUES
+-- Italian Names
+('Marco Rossi', 'Senior Software Architect', CURRENT_TIMESTAMP),
+('Giuseppe Conti', 'DevOps Engineer', CURRENT_TIMESTAMP),
+('Alessandro Ferrari', 'Security Systems Specialist', CURRENT_TIMESTAMP),
+('Sofia Marino', 'Data Privacy Officer', CURRENT_TIMESTAMP),
+('Lorenzo Romano', 'Full Stack Developer', CURRENT_TIMESTAMP),
+('Valentina Colombo', 'Systems Analyst', CURRENT_TIMESTAMP),
+('Luca Ricci', 'Database Administrator', CURRENT_TIMESTAMP),
+('Matteo Greco', 'Cloud Infrastructure Engineer', CURRENT_TIMESTAMP),
+('Chiara Esposito', 'Scrum Master', CURRENT_TIMESTAMP),
+('Andrea Moretti', 'Software Development Team Lead', CURRENT_TIMESTAMP),
+('Francesca Barbieri', 'Quality Assurance Engineer', CURRENT_TIMESTAMP),
+('Roberto Mancini', 'Network Security Engineer', CURRENT_TIMESTAMP),
+('Elena Lombardi', 'Business Analyst', CURRENT_TIMESTAMP),
+('Paolo Gallo', 'Backend Developer', CURRENT_TIMESTAMP),
+('Isabella Costa', 'Frontend Developer', CURRENT_TIMESTAMP),
+('Davide Fontana', 'Infrastructure Architect', CURRENT_TIMESTAMP),
+('Giulia Santoro', 'UX/UI Designer', CURRENT_TIMESTAMP),
+('Antonio Marini', 'System Integration Specialist', CURRENT_TIMESTAMP),
+('Claudia Vitale', 'Information Security Analyst', CURRENT_TIMESTAMP),
+('Stefano Leone', 'API Integration Specialist', CURRENT_TIMESTAMP),
+('Maria Longo', 'Technical Project Manager', CURRENT_TIMESTAMP),
+('Fabio Ferrara', 'DevSecOps Engineer', CURRENT_TIMESTAMP),
+('Laura Pellegrini', 'Data Engineer', CURRENT_TIMESTAMP),
+('Vincenzo Serra', 'Software Engineer', CURRENT_TIMESTAMP),
+('Cristina Palumbo', 'Agile Coach', CURRENT_TIMESTAMP),
+('Emilio Valentini', 'Solutions Architect', CURRENT_TIMESTAMP),
+('Silvia Monti', 'Product Owner', CURRENT_TIMESTAMP),
+('Dario Battaglia', 'Site Reliability Engineer', CURRENT_TIMESTAMP),
+('Beatrice Farina', 'Quality Assurance Lead', CURRENT_TIMESTAMP),
+('Massimo Rizzi', 'Enterprise Architect', CURRENT_TIMESTAMP),
+('Valeria Caruso', 'Technical Writer', CURRENT_TIMESTAMP),
+('Nicola De Luca', 'Release Manager', CURRENT_TIMESTAMP),
+('Elisa Martini', 'Software Test Engineer', CURRENT_TIMESTAMP),
+('Simone Gatti', 'Cloud Security Engineer', CURRENT_TIMESTAMP),
+('Alessia Bernardi', 'IT Compliance Specialist', CURRENT_TIMESTAMP),
+
+-- German Names
+('Hans Mueller', 'Principal Software Engineer', CURRENT_TIMESTAMP),
+('Wolfgang Schmidt', 'Security Operations Lead', CURRENT_TIMESTAMP),
+('Klaus Weber', 'Technical Architect', CURRENT_TIMESTAMP),
+('Gerhard Fischer', 'DevOps Team Lead', CURRENT_TIMESTAMP),
+('Dieter Wagner', 'Systems Security Engineer', CURRENT_TIMESTAMP),
+('Markus Becker', 'Cloud Platform Engineer', CURRENT_TIMESTAMP),
+('Stefan Hoffmann', 'Software Development Manager', CURRENT_TIMESTAMP),
+('Thomas Schulz', 'Integration Specialist', CURRENT_TIMESTAMP),
+('Michael Koch', 'Database Security Specialist', CURRENT_TIMESTAMP),
+('Andreas Bauer', 'Infrastructure Security Engineer', CURRENT_TIMESTAMP),
+('Jürgen Richter', 'Senior Systems Engineer', CURRENT_TIMESTAMP),
+('Werner Klein', 'Application Security Engineer', CURRENT_TIMESTAMP),
+('Rainer Wolf', 'Network Engineer', CURRENT_TIMESTAMP),
+('Erich Schröder', 'IT Security Architect', CURRENT_TIMESTAMP),
+('Karl Neumann', 'Software Quality Engineer', CURRENT_TIMESTAMP),
+('Sabine Meyer', 'Data Protection Specialist', CURRENT_TIMESTAMP),
+('Monika Krause', 'Agile Project Manager', CURRENT_TIMESTAMP),
+('Ursula Schwarz', 'Information Systems Security Officer', CURRENT_TIMESTAMP),
+('Helga Zimmermann', 'Requirements Engineer', CURRENT_TIMESTAMP),
+('Ingrid Schmitt', 'Configuration Manager', CURRENT_TIMESTAMP),
+('Petra Lange', 'IT Governance Specialist', CURRENT_TIMESTAMP),
+('Renate Krüger', 'Quality Management Lead', CURRENT_TIMESTAMP),
+('Brigitte Hartmann', 'Documentation Specialist', CURRENT_TIMESTAMP),
+('Erika Werner', 'Process Automation Engineer', CURRENT_TIMESTAMP),
+('Heinrich Schmitz', 'Security Compliance Officer', CURRENT_TIMESTAMP),
+('Otto Meier', 'Infrastructure Manager', CURRENT_TIMESTAMP),
+('Fritz Lehmann', 'Systems Integration Engineer', CURRENT_TIMESTAMP),
+('Walter König', 'Technical Operations Specialist', CURRENT_TIMESTAMP),
+('Gustav Huber', 'Enterprise Solutions Architect', CURRENT_TIMESTAMP),
+('Wilhelm Braun', 'Cloud Operations Engineer', CURRENT_TIMESTAMP),
+('Manfred Berg', 'IT Risk Analyst', CURRENT_TIMESTAMP),
+('Rudolf Fuchs', 'Cybersecurity Engineer', CURRENT_TIMESTAMP),
+('Ernst Keller', 'Platform Engineer', CURRENT_TIMESTAMP),
+('Hermann Vogel', 'Security Systems Architect', CURRENT_TIMESTAMP),
+('Kurt Frank', 'Technical Support Lead', CURRENT_TIMESTAMP),
+('Günther Berger', 'Systems Administrator', CURRENT_TIMESTAMP),
+('Ludwig Kaiser', 'Network Operations Engineer', CURRENT_TIMESTAMP),
+('Helmut Schuster', 'IT Auditor', CURRENT_TIMESTAMP); 

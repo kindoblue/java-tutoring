@@ -13,6 +13,35 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.HashMap;
 
+// Add static inner class for pagination response
+class PageResponse<T> {
+    private List<T> content;
+    private long totalElements;
+    private int totalPages;
+    private int currentPage;
+    private int size;
+
+    public PageResponse(List<T> content, long totalElements, int currentPage, int size) {
+        this.content = content;
+        this.totalElements = totalElements;
+        this.currentPage = currentPage;
+        this.size = size;
+        this.totalPages = (int) Math.ceil(totalElements / (double) size);
+    }
+
+    // Getters and setters
+    public List<T> getContent() { return content; }
+    public void setContent(List<T> content) { this.content = content; }
+    public long getTotalElements() { return totalElements; }
+    public void setTotalElements(long totalElements) { this.totalElements = totalElements; }
+    public int getTotalPages() { return totalPages; }
+    public void setTotalPages(int totalPages) { this.totalPages = totalPages; }
+    public int getCurrentPage() { return currentPage; }
+    public void setCurrentPage(int currentPage) { this.currentPage = currentPage; }
+    public int getSize() { return size; }
+    public void setSize(int size) { this.size = size; }
+}
+
 @Path("/employees")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -21,18 +50,6 @@ public class EmployeeResource {
 
     public EmployeeResource() {
         sessionFactory = new Configuration().configure().buildSessionFactory();
-    }
-
-    @GET
-    public Response getAllEmployees() {
-        try (Session session = sessionFactory.openSession()) {
-            List<Employee> employees = session.createQuery(
-                "select distinct e from Employee e " +
-                "left join fetch e.seats s " +
-                "left join fetch s.room r", 
-                Employee.class).list();
-            return Response.ok(employees).build();
-        }
     }
 
     @GET
@@ -161,15 +178,11 @@ public class EmployeeResource {
                     .setMaxResults(size)
                     .list();
 
-            // Create a response object with pagination metadata
-            var response = new HashMap<String, Object>();
-            response.put("content", employees);
-            response.put("totalElements", totalElements);
-            response.put("totalPages", (int) Math.ceil(totalElements / (double) size));
-            response.put("currentPage", page);
-            response.put("size", size);
+            PageResponse<Employee> pageResponse = new PageResponse<>(
+                employees, totalElements, page, size
+            );
 
-            return Response.ok(response).build();
+            return Response.ok(pageResponse).build();
         }
     }
 } 
