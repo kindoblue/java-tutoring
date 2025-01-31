@@ -46,5 +46,5 @@ GET http://localhost:8080/api/employees/search?search=engineer&page=0&size=10
 ### Search employees - empty search term (returns all with pagination)
 GET http://localhost:8080/api/employees/search?page=0&size=5 
 
-### Search employees - empty search term (returns all with pagination)
-GET http://localhost:8080/api/employees?page=0&size=5
+### Stats
+GET http://localhost:8080/api/stats
