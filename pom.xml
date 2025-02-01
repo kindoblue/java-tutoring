@@ -122,15 +122,6 @@
                         </deployable>
                     </deployables>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>cargo-run</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
