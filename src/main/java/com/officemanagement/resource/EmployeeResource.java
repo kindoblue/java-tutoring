@@ -71,6 +71,26 @@ public class EmployeeResource {
         }
     }
 
+    @GET
+    @Path("/{id}/seats")
+    public Response getEmployeeSeats(@PathParam("id") Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            Employee employee = session.createQuery(
+                "select distinct e from Employee e " +
+                "left join fetch e.seats s " +
+                "left join fetch s.room r " +
+                "where e.id = :id", 
+                Employee.class)
+                .setParameter("id", id)
+                .uniqueResult();
+            
+            if (employee == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.ok(employee.getSeats()).build();
+        }
+    }
+
     @POST
     public Response createEmployee(Employee employee) {
         try (Session session = sessionFactory.openSession()) {
@@ -184,4 +204,4 @@ public class EmployeeResource {
             return Response.ok(pageResponse).build();
         }
     }
-} 
+}

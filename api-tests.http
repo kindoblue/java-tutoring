@@ -25,6 +25,9 @@ GET http://localhost:8080/api/employees
 ### Get specific employee with seat information
 GET http://localhost:8080/api/employees/1
 
+### Get employee's seats
+GET http://localhost:8080/api/employees/6/seats
+
 ### Create new employee
 POST http://localhost:8080/api/employees
 Content-Type: application/json
