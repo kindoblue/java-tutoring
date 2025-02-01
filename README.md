@@ -1,6 +1,9 @@
 # Office Management System
 
 ![Build Status](https://github.com/kindoblue/java-tutoring/actions/workflows/build.yml/badge.svg)
+![Dependabot](https://img.shields.io/badge/dependabot-enabled-025E8C?logo=dependabot)
+![Java Version](https://img.shields.io/badge/Java-11-orange?logo=java)
+![Last Commit](https://img.shields.io/github/last-commit/kindoblue/java-tutoring)
 
 A Java-based office management system for managing employees, seats, and office spaces.
 
