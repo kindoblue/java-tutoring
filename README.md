@@ -1,6 +1,67 @@
 # Office Management System
 
-A REST API service for managing office spaces, including floors, rooms, and seats.
+![Build Status](https://github.com/[your-username]/office-management-system/actions/workflows/build.yml/badge.svg)
+
+A Java-based office management system for managing employees, seats, and office spaces.
+
+## Technologies Used
+
+- Java 11
+- Hibernate 5.6
+- Jersey (JAX-RS) 2.34
+- PostgreSQL
+- HikariCP
+- Maven
+
+## Features
+
+- Employee management with pagination and search
+- Office space management (floors, rooms, seats)
+- Seat assignment system
+- RESTful API
+- Connection pooling with HikariCP
+
+## Building the Project
+
+```bash
+mvn clean package
+```
+
+## Running the Application
+
+```bash
+mvn cargo:run
+```
+
+The application will be available at `http://localhost:8080`
+
+## API Documentation
+
+### Employees
+- `GET /api/employees/search?search=term&page=0&size=10` - Search employees with pagination
+- `GET /api/employees/{id}` - Get employee by ID
+- `POST /api/employees` - Create new employee
+- `PUT /api/employees/{id}/assign-seat/{seatId}` - Assign seat to employee
+- `DELETE /api/employees/{id}/unassign-seat/{seatId}` - Unassign seat from employee
+
+### Seats
+- `GET /api/seats/{id}` - Get seat by ID
+- `POST /api/seats` - Create new seat
+
+### Rooms
+- `GET /api/rooms/{id}/seats` - Get all seats in a room
+
+### Floors
+- `GET /api/floors` - Get all floors
+- `GET /api/floors/{id}` - Get floor by ID with rooms and seats
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## Prerequisites
 
