@@ -2,9 +2,9 @@ package com.officemanagement.resource;
 
 import com.officemanagement.model.OfficeRoom;
 import com.officemanagement.model.Seat;
+import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -15,10 +15,10 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RoomResource {
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     public RoomResource() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
     @GET

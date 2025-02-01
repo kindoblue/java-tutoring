@@ -7,7 +7,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
+import com.officemanagement.util.HibernateUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.PreDestroy;
 
@@ -17,8 +17,7 @@ public class StatsResource {
     private final SessionFactory sessionFactory;
 
     public StatsResource() {
-        // Initialize the SessionFactory
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
     @PreDestroy

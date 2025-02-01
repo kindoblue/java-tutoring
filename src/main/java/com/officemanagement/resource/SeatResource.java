@@ -2,23 +2,24 @@ package com.officemanagement.resource;
 
 import com.officemanagement.model.Seat;
 import com.officemanagement.model.OfficeRoom;
+import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Path("/seats")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SeatResource {
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     public SeatResource() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
     @GET

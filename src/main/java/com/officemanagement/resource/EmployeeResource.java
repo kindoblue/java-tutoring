@@ -2,9 +2,9 @@ package com.officemanagement.resource;
 
 import com.officemanagement.model.Employee;
 import com.officemanagement.model.Seat;
+import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -45,10 +45,10 @@ class PageResponse<T> {
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EmployeeResource {
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     public EmployeeResource() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
     @GET
