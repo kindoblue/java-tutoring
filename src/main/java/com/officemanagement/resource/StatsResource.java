@@ -44,7 +44,9 @@ public class StatsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON) // Return JSON response
     public Response getStats() {
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             // Get counts using getSingleResult instead of uniqueResult
             Long totalEmployees = session.createQuery("SELECT COUNT(e) FROM Employee e", Long.class)
                                       .getSingleResult();
@@ -65,6 +67,10 @@ public class StatsResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Failed to retrieve stats: " + e.getMessage()))
                     .build();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
