@@ -9,7 +9,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import com.officemanagement.util.HibernateUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.annotation.PreDestroy;
 
 @Path("/stats") // Base path for all stats-related endpoints
 public class StatsResource {
@@ -18,13 +17,6 @@ public class StatsResource {
 
     public StatsResource() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
-    }
-
-    @PreDestroy
-    public void cleanup() {
-        if (sessionFactory != null) {
-            sessionFactory.close();
-        }
     }
 
     // DTO for stats response
