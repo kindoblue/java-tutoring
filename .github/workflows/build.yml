@@ -51,7 +51,7 @@ jobs:
       run: mvn -B verify
       
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5.3.1
       with:
         files: ./target/site/jacoco/jacoco.xml
         flags: unittests
