@@ -3,6 +3,7 @@ package com.officemanagement.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "seats")
@@ -31,7 +32,7 @@ public class Seat {
 
     // Add a convenience method to check if seat is occupied
     @Transient
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public boolean isOccupied() {
         return employee != null;
     }
