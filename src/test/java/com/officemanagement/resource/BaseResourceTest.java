@@ -100,6 +100,33 @@ public abstract class BaseResourceTest extends JerseyTest {
         // Start a new transaction
         session = sessionFactory.openSession();
         transaction = session.beginTransaction();
+
+        // Clean the database before each test
+        cleanDatabase();
+    }
+
+    private void cleanDatabase() {
+        // Disable foreign key checks temporarily
+        session.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE").executeUpdate();
+        
+        // Truncate all tables
+        session.createNativeQuery("TRUNCATE TABLE seats").executeUpdate();
+        session.createNativeQuery("TRUNCATE TABLE employees").executeUpdate();
+        session.createNativeQuery("TRUNCATE TABLE office_rooms").executeUpdate();
+        session.createNativeQuery("TRUNCATE TABLE floors").executeUpdate();
+        
+        // Reset sequences
+        session.createNativeQuery("ALTER SEQUENCE seat_seq RESTART WITH 1").executeUpdate();
+        session.createNativeQuery("ALTER SEQUENCE employee_seq RESTART WITH 1").executeUpdate();
+        session.createNativeQuery("ALTER SEQUENCE office_room_seq RESTART WITH 1").executeUpdate();
+        session.createNativeQuery("ALTER SEQUENCE floor_seq RESTART WITH 1").executeUpdate();
+        
+        // Re-enable foreign key checks
+        session.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE").executeUpdate();
+        
+        // Commit the changes
+        transaction.commit();
+        transaction = session.beginTransaction();
     }
 
     @AfterEach
