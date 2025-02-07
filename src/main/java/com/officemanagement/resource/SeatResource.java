@@ -40,22 +40,31 @@ public class SeatResource {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             
-            // Load the referenced room
-            if (seat.getRoom() != null && seat.getRoom().getId() != null) {
-                OfficeRoom room = session.get(OfficeRoom.class, seat.getRoom().getId());
-                if (room == null) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("Referenced room does not exist")
-                        .build();
-                }
-                seat.setRoom(room);
+            // Validate that room is provided
+            if (seat.getRoom() == null || seat.getRoom().getId() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Room reference is required")
+                    .build();
             }
             
-            // Set creation timestamp
+            // Load the referenced room
+            OfficeRoom room = session.get(OfficeRoom.class, seat.getRoom().getId());
+            if (room == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Referenced room does not exist")
+                    .build();
+            }
+            
+            // Set the room and creation timestamp
+            seat.setRoom(room);
             seat.setCreatedAt(LocalDateTime.now());
             
+            // Save the seat
             session.save(seat);
             session.getTransaction().commit();
+            
+            // Refresh the seat to get the generated ID
+            session.refresh(seat);
             
             return Response.status(Response.Status.CREATED)
                 .entity(seat)

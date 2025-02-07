@@ -9,7 +9,9 @@ import java.util.List;
 @Table(name = "office_rooms")
 public class OfficeRoom {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "office_room_seq")
+    @SequenceGenerator(name = "office_room_seq", sequenceName = "office_room_seq", allocationSize = 1)
+    @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
     @ManyToOne

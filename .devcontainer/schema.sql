@@ -9,16 +9,28 @@ DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS office_rooms;
 DROP TABLE IF EXISTS floors;
 
+-- Drop sequences if they exist
+DROP SEQUENCE IF EXISTS employee_seq;
+DROP SEQUENCE IF EXISTS seat_seq;
+DROP SEQUENCE IF EXISTS office_room_seq;
+DROP SEQUENCE IF EXISTS floor_seq;
+
+-- Create sequences
+CREATE SEQUENCE employee_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seat_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE office_room_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE floor_seq START WITH 1 INCREMENT BY 1;
+
 -- Create tables in correct order (no forward references)
 CREATE TABLE floors (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT DEFAULT nextval('floor_seq') PRIMARY KEY,
     floor_number INTEGER NOT NULL,
     name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE office_rooms (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT DEFAULT nextval('office_room_seq') PRIMARY KEY,
     room_number VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     floor_id BIGINT REFERENCES floors(id),
@@ -26,14 +38,14 @@ CREATE TABLE office_rooms (
 );
 
 CREATE TABLE employees (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT DEFAULT nextval('employee_seq') PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
     occupation VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE seats (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT DEFAULT nextval('seat_seq') PRIMARY KEY,
     seat_number VARCHAR(255) NOT NULL,
     room_id BIGINT REFERENCES office_rooms(id),
     employee_id BIGINT REFERENCES employees(id), -- add UNIQUE if the employee can only have one seat

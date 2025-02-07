@@ -8,18 +8,20 @@ import java.time.LocalDateTime;
 @Table(name = "seats")
 public class Seat {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seat_seq")
+    @SequenceGenerator(name = "seat_seq", sequenceName = "seat_seq", allocationSize = 1)
+    @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", nullable = false)
     @JsonIgnoreProperties("seats")
     private OfficeRoom room;
 
-    @Column(name = "seat_number")
+    @Column(name = "seat_number", nullable = false)
     private String seatNumber;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @ManyToOne
@@ -29,6 +31,7 @@ public class Seat {
 
     // Add a convenience method to check if seat is occupied
     @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isOccupied() {
         return employee != null;
     }

@@ -10,7 +10,9 @@ import java.util.Set;
 @Table(name = "floors")
 public class Floor {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "floor_seq")
+    @SequenceGenerator(name = "floor_seq", sequenceName = "floor_seq", allocationSize = 1)
+    @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
     @Column(name = "floor_number")
