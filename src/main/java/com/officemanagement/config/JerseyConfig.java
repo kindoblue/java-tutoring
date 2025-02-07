@@ -2,14 +2,20 @@ package com.officemanagement.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import javax.ws.rs.ext.Provider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.glassfish.jersey.server.ResourceConfig;
 
-@Provider
-public class JerseyConfig extends JacksonJaxbJsonProvider {
+import javax.ws.rs.ApplicationPath;
+
+@ApplicationPath("/api")
+public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
+        // Register resources package
+        packages("com.officemanagement.resource");
+        
+        // Configure JSON serialization
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        setMapper(mapper);
+        register(new JacksonJsonProvider(mapper));
     }
 } 

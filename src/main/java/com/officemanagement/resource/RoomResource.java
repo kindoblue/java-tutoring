@@ -2,6 +2,7 @@ package com.officemanagement.resource;
 
 import com.officemanagement.model.OfficeRoom;
 import com.officemanagement.model.Seat;
+import com.officemanagement.model.Floor;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -9,6 +10,7 @@ import org.hibernate.SessionFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/rooms")
@@ -19,6 +21,39 @@ public class RoomResource {
 
     public RoomResource() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
+    }
+
+    @POST
+    public Response createRoom(OfficeRoom room) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            
+            // Validate that floor is provided
+            if (room.getFloor() == null || room.getFloor().getId() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Floor reference is required")
+                    .build();
+            }
+            
+            // Load the referenced floor
+            Floor floor = session.get(Floor.class, room.getFloor().getId());
+            if (floor == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Referenced floor does not exist")
+                    .build();
+            }
+            room.setFloor(floor);
+            
+            // Set creation timestamp
+            room.setCreatedAt(LocalDateTime.now());
+            
+            session.save(room);
+            session.getTransaction().commit();
+            
+            return Response.status(Response.Status.CREATED)
+                .entity(room)
+                .build();
+        }
     }
 
     @GET
