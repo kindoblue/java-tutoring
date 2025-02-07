@@ -47,11 +47,17 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+    - name: Build and run tests with coverage
+      run: mvn -B verify
       
-    - name: Run Tests
-      run: mvn test
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./target/site/jacoco/jacoco.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
       
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
