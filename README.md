@@ -5,7 +5,24 @@
 ![Java Version](https://img.shields.io/badge/Java-11-orange?logo=java)
 ![Last Commit](https://img.shields.io/github/last-commit/kindoblue/java-tutoring)
 
-A Java-based office management system for managing employees, seats, and office spaces.
+A Java-based office management system that provides a RESTful API for managing office spaces, employees, and seat assignments. The system allows you to:
+- Create and manage multiple floors with rooms
+- Track and assign seats to employees
+- Search employees with pagination and filtering
+- Monitor office space utilization
+
+## Table of Contents
+- [Technologies Used](#technologies-used)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Development Container Details](#development-container-details)
+- [Database Setup](#database-setup)
+- [Building and Running](#building-and-running)
+- [API Documentation](#api-documentation)
+- [Example API Requests](#example-api-requests)
+- [Contributing](#contributing)
+- [Error Handling](#error-handling)
 
 ## Technologies Used
 
@@ -18,25 +35,108 @@ A Java-based office management system for managing employees, seats, and office 
 
 ## Features
 
-- Employee management with pagination and search
-- Office space management (floors, rooms, seats)
-- Seat assignment system
-- RESTful API
-- Connection pooling with HikariCP
+- **Employee Management**
+  - Create and update employee profiles
+  - Search employees by name or occupation
+  - Paginated results for efficient data retrieval
+  
+- **Office Space Management**
+  - Hierarchical structure: Floors → Rooms → Seats
+  - Prevent duplicate floor/room numbers
+  - Track seat availability and assignments
+  
+- **Seat Assignment System**
+  - Assign/unassign seats to employees
+  - Prevent double booking of seats
+  - View seat occupancy status
+  
+- **API Features**
+  - RESTful endpoints with proper HTTP methods
+  - Comprehensive error handling
+  - Input validation
+  - Pagination support
+  
+- **Technical Features**
+  - Connection pooling with HikariCP
+  - Hibernate for ORM
+  - Containerized development environment
+  - Automated tests
 
-## Building the Project
+## Prerequisites
+
+- [Visual Studio Code](https://code.visualstudio.com/download)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- VSCode Extension: [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+## Quick Start
+
+1. Clone this repository
+2. Open VSCode
+3. Install the "Dev Containers" extension if you haven't already
+4. Open the project folder in VSCode
+5. When prompted "Folder contains a Dev Container configuration file. Reopen folder to develop in a container?" click "Reopen in Container"
+
+VSCode will then:
+1. Build and start two containers:
+   - A development container with all necessary tools (Java, Maven, etc.)
+   - A PostgreSQL database container (accessible on port 5432)
+2. Mount your project files into the development container
+3. Connect VSCode to the development container
+
+## Development Container Details
+
+The project uses VSCode's Dev Containers feature to provide a consistent development environment. The setup includes:
+
+1. **Development Container**:
+   - Based on devbox image
+   - Contains all development tools (Java 11, Maven, etc.)
+   - Mounts your project directory
+   - Connected to the database container
+   - Configured with necessary extensions for Java development
+
+2. **Database Container**:
+   - PostgreSQL 15
+   - Persists data in a Docker volume
+   - Automatically initialized with schema
+   - Health checks ensure database is ready before app starts
+
+## Database Setup
+
+The PostgreSQL database is automatically:
+- Created with name: `office_management`
+- Initialized with tables: `floors`, `office_rooms`, and `seats`
+- Populated with sample data
+- Accessible with:
+  - Host: `localhost`
+  - Port: `5432`
+  - Username: `postgres`
+  - Password: `postgres`
+
+## Building and Running
+
+### Building
+Build the project, run tests and create WAR file:
 
 ```bash
-mvn clean package
+mvn package
 ```
 
-## Running the Application
+This will:
+1. Compile the Java code
+2. Run all tests
+3. Package the application into a WAR file
+
+### Running
+Start the application using the embedded Tomcat server:
 
 ```bash
 mvn cargo:run
 ```
 
-The application will be available at `http://localhost:8080`
+This will:
+1. Start an embedded Tomcat server
+2. Deploy the WAR file to Tomcat
+3. Make the application available at `http://localhost:8080`
 
 ## API Documentation
 
@@ -113,9 +213,17 @@ The application will be available at `http://localhost:8080`
     - Total number of employees
     - Seat occupancy rate
 
-Example Requests:
+## Example API Requests
+
+### Basic CRUD Operations
 
 ```bash
+# Get all floors
+curl http://localhost:8080/api/floors
+
+# Get specific floor with rooms and seats
+curl http://localhost:8080/api/floors/1
+
 # Create a new floor
 curl -X POST http://localhost:8080/api/floors \
 -H "Content-Type: application/json" \
@@ -124,23 +232,21 @@ curl -X POST http://localhost:8080/api/floors \
   "floorNumber": 1
 }'
 
-# Create a new room
-curl -X POST http://localhost:8080/api/rooms \
+# Update a floor
+curl -X PUT http://localhost:8080/api/floors/1 \
 -H "Content-Type: application/json" \
 -d '{
-  "name": "Conference Room",
-  "roomNumber": "101",
-  "floor": {"id": 1}
+  "name": "Ground Floor",
+  "floorNumber": 0
 }'
 
-# Create a new seat
-curl -X POST http://localhost:8080/api/seats \
--H "Content-Type: application/json" \
--d '{
-  "seatNumber": "101-A",
-  "room": {"id": 1}
-}'
+# Delete a floor
+curl -X DELETE http://localhost:8080/api/floors/1
+```
 
+### Employee and Seat Management
+
+```bash
 # Create a new employee
 curl -X POST http://localhost:8080/api/employees \
 -H "Content-Type: application/json" \
@@ -149,11 +255,36 @@ curl -X POST http://localhost:8080/api/employees \
   "occupation": "Software Engineer"
 }'
 
+# Search employees by occupation
+curl "http://localhost:8080/api/employees/search?search=engineer&page=0&size=10"
+
+# Get employee's assigned seats
+curl http://localhost:8080/api/employees/1/seats
+
 # Assign a seat to an employee
 curl -X PUT http://localhost:8080/api/employees/1/assign-seat/1
 
-# Search employees
-curl "http://localhost:8080/api/employees/search?search=engineer&page=0&size=10"
+# Unassign a seat
+curl -X DELETE http://localhost:8080/api/employees/1/unassign-seat/1
+```
+
+### Office Statistics
+
+```bash
+# Get office statistics
+curl http://localhost:8080/api/stats
+```
+
+Example Response:
+```json
+{
+  "totalFloors": 3,
+  "totalRooms": 15,
+  "totalSeats": 100,
+  "occupiedSeats": 75,
+  "totalEmployees": 80,
+  "occupancyRate": 75.0
+}
 ```
 
 ## Contributing
@@ -164,75 +295,40 @@ curl "http://localhost:8080/api/employees/search?search=engineer&page=0&size=10"
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Prerequisites
+### Development Guidelines
+- Follow Java code style guidelines
+- Write unit tests for new features
+- Update documentation for API changes
+- Use meaningful commit messages
+- Keep pull requests focused and atomic
 
-- [Visual Studio Code](https://code.visualstudio.com/download)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- VSCode Extension: [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+## Error Handling
 
-## Quick Start
+The API uses standard HTTP status codes and provides detailed error messages:
 
-1. Clone this repository
-2. Open VSCode
-3. Install the "Dev Containers" extension if you haven't already
-4. Open the project folder in VSCode
-5. When prompted "Folder contains a Dev Container configuration file. Reopen folder to develop in a container?" click "Reopen in Container"
+### Common Status Codes
+- `200 OK` - Request successful
+- `201 Created` - Resource successfully created
+- `204 No Content` - Request successful (no response body)
+- `400 Bad Request` - Invalid input/parameters
+- `404 Not Found` - Resource not found
+- `409 Conflict` - Resource already exists
+- `500 Internal Server Error` - Server error
 
-VSCode will then:
-1. Build and start two containers:
-   - A development container with all necessary tools (Java, Maven, etc.)
-   - A PostgreSQL database container (accessible on port 5432)
-2. Mount your project files into the development container
-3. Connect VSCode to the development container
+### Common Error Scenarios
+- Creating duplicate floor/room numbers
+- Deleting floors with existing rooms
+- Deleting rooms with existing seats
+- Deleting seats assigned to employees
+- Invalid pagination parameters
+- Missing required fields
+- Invalid data formats
 
-
-## Database Setup
-
-The PostgreSQL database is automatically:
-- Created with name: `office_management`
-- Initialized with tables: `floors`, `office_rooms`, and `seats`
-- Populated with sample data
-- Accessible with:
-  - Host: `localhost`
-  - Port: `5432`
-  - Username: `postgres`
-  - Password: `postgres`
-
-## Building 
-
-Build the project, test and create WAR file with the following command:
-
-``` 
-mvn package
+### Error Response Format
+```json
+{
+  "status": 400,
+  "message": "Detailed error message",
+  "timestamp": "2024-03-21T10:15:30Z"
+}
 ```
-
-This single command will:
-1. Compile the Java code
-2. Run any tests
-3. Package the application into a WAR file
-
-## Running the Application
-```
-mvn cargo:run
-```
-1. Start an embedded Tomcat server
-2. Deploy the WAR file to Tomcat
-3. The application will be available at `http://localhost:8080`
-
-
-## Development Container Details
-
-The project uses VSCode's Dev Containers feature to provide a consistent development environment. The setup includes:
-
-1. **Development Container**:
-   - Based on devbox image
-   - Contains all development tools (Java 11, Maven, etc.)
-   - Mounts your project directory
-   - Connected to the database container
-   - Configured with necessary extensions for Java development
-
-2. **Database Container**:
-   - PostgreSQL 15
-   - Persists data in a Docker volume
-   - Automatically initialized with schema
-   - Health checks ensure database is ready before app starts
