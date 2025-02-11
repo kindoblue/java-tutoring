@@ -40,23 +40,121 @@ The application will be available at `http://localhost:8080`
 
 ## API Documentation
 
-### Employees
-- `GET /api/employees/search?search=term&page=0&size=10` - Search employees with pagination
-- `GET /api/employees/{id}` - Get employee by ID
-- `POST /api/employees` - Create new employee
-- `PUT /api/employees/{id}/assign-seat/{seatId}` - Assign seat to employee
-- `DELETE /api/employees/{id}/unassign-seat/{seatId}` - Unassign seat from employee
-
-### Seats
-- `GET /api/seats/{id}` - Get seat by ID
-- `POST /api/seats` - Create new seat
+### Floors
+- `GET /api/floors` - List all floors
+  - Response: Array of floors with basic info (id, name, floorNumber)
+- `GET /api/floors/{id}` - Get floor details with rooms and seats
+  - Response: Floor object with nested rooms and seats
+- `POST /api/floors` - Create a new floor
+  - Request Body: `{"name": "First Floor", "floorNumber": 1}`
+  - Response: Created floor object with id
+- `PUT /api/floors/{id}` - Update a floor
+  - Request Body: `{"name": "Updated Floor", "floorNumber": 1}`
+  - Response: Updated floor object
+- `DELETE /api/floors/{id}` - Delete a floor
+  - Response: 204 No Content
+  - Error: 400 Bad Request if floor has rooms
 
 ### Rooms
+- `GET /api/rooms/{id}` - Get room details with seats
+  - Response: Room object with nested seats
 - `GET /api/rooms/{id}/seats` - Get all seats in a room
+  - Response: Array of seats
+- `POST /api/rooms` - Create a new room
+  - Request Body: `{"name": "Conference Room", "roomNumber": "101", "floor": {"id": 1}}`
+  - Response: Created room object with id
+- `PUT /api/rooms/{id}` - Update a room
+  - Request Body: `{"name": "Updated Room", "roomNumber": "102", "floor": {"id": 1}}`
+  - Response: Updated room object
+- `DELETE /api/rooms/{id}` - Delete a room
+  - Response: 204 No Content
+  - Error: 400 Bad Request if room has seats
 
-### Floors
-- `GET /api/floors` - Get all floors
-- `GET /api/floors/{id}` - Get floor by ID with rooms and seats
+### Seats
+- `GET /api/seats/{id}` - Get seat details
+  - Response: Seat object with room info
+- `POST /api/seats` - Create a new seat
+  - Request Body: `{"seatNumber": "101-A", "room": {"id": 1}}`
+  - Response: Created seat object with id
+- `PUT /api/seats/{id}` - Update a seat
+  - Request Body: `{"seatNumber": "101-B", "room": {"id": 1}}`
+  - Response: Updated seat object
+- `DELETE /api/seats/{id}` - Delete a seat
+  - Response: 204 No Content
+  - Error: 400 Bad Request if seat is assigned to an employee
+
+### Employees
+- `GET /api/employees/{id}` - Get employee details
+  - Response: Employee object with assigned seats
+- `GET /api/employees/{id}/seats` - Get employee's assigned seats
+  - Response: Array of seats
+- `GET /api/employees/search` - Search employees with pagination
+  - Query Parameters:
+    - `search`: Search term for name or occupation
+    - `page`: Page number (default: 0)
+    - `size`: Page size (default: 10)
+  - Response: Paginated employee results
+- `POST /api/employees` - Create new employee
+  - Request Body: `{"fullName": "John Doe", "occupation": "Software Engineer"}`
+  - Response: Created employee object with id
+- `PUT /api/employees/{id}/assign-seat/{seatId}` - Assign seat to employee
+  - Response: Updated employee object with seats
+  - Error: 400 Bad Request if seat is already occupied
+- `DELETE /api/employees/{id}/unassign-seat/{seatId}` - Unassign seat from employee
+  - Response: Updated employee object with seats
+  - Error: 400 Bad Request if seat is not assigned to employee
+
+### Statistics
+- `GET /api/stats` - Get office statistics
+  - Response: Object containing:
+    - Total number of floors
+    - Total number of rooms
+    - Total number of seats
+    - Total number of employees
+    - Seat occupancy rate
+
+Example Requests:
+
+```bash
+# Create a new floor
+curl -X POST http://localhost:8080/api/floors \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "First Floor",
+  "floorNumber": 1
+}'
+
+# Create a new room
+curl -X POST http://localhost:8080/api/rooms \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Conference Room",
+  "roomNumber": "101",
+  "floor": {"id": 1}
+}'
+
+# Create a new seat
+curl -X POST http://localhost:8080/api/seats \
+-H "Content-Type: application/json" \
+-d '{
+  "seatNumber": "101-A",
+  "room": {"id": 1}
+}'
+
+# Create a new employee
+curl -X POST http://localhost:8080/api/employees \
+-H "Content-Type: application/json" \
+-d '{
+  "fullName": "John Doe",
+  "occupation": "Software Engineer"
+}'
+
+# Assign a seat to an employee
+curl -X PUT http://localhost:8080/api/employees/1/assign-seat/1
+
+# Search employees
+curl "http://localhost:8080/api/employees/search?search=engineer&page=0&size=10"
+```
 
 ## Contributing
 
@@ -100,9 +198,9 @@ The PostgreSQL database is automatically:
   - Username: `postgres`
   - Password: `postgres`
 
-## Building and Running
+## Building 
 
-Build the project, create WAR file, and start Tomcat automatically with the following command:
+Build the project, test and create WAR file with the following command:
 
 ``` 
 mvn package
@@ -112,37 +210,15 @@ This single command will:
 1. Compile the Java code
 2. Run any tests
 3. Package the application into a WAR file
-4. Start an embedded Tomcat server
-5. Deploy the WAR file to Tomcat
-6. The application will be available at `http://localhost:8080`
 
-## API Endpoints
-
-### Floors
-- `GET /api/floors` - List all floors (basic info)
-- `GET /api/floors/{id}` - Get floor details with rooms and seats
-- `POST /api/floors` - Create a new floor
-- `PUT /api/floors/{id}` - Update a floor
-- `DELETE /api/floors/{id}` - Delete a floor
-
-### Rooms
-- `GET /api/rooms/{id}/seats` - Get all seats in a room
-
-### Seats
-- `GET /api/seats/{id}` - Get seat details
-- `POST /api/seats` - Create a new seat
-
-Example seat creation:
-
+## Running the Application
 ```
-curl -X POST http://localhost:8080/api/seats \
--H "Content-Type: application/json" \
--d '{
-"seatNumber": "801-05",
-"room": {"id": 1},
-"occupied": false
-}'
+mvn cargo:run
 ```
+1. Start an embedded Tomcat server
+2. Deploy the WAR file to Tomcat
+3. The application will be available at `http://localhost:8080`
+
 
 ## Development Container Details
 
