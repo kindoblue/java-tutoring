@@ -97,6 +97,9 @@ public abstract class BaseResourceTest extends JerseyTest {
         RestAssured.port = getPort();
         RestAssured.basePath = "/";
         
+        // Configure REST Assured logging
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        
         // Start a new transaction
         session = sessionFactory.openSession();
         transaction = session.beginTransaction();
