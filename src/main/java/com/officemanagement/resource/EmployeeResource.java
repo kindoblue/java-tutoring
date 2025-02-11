@@ -93,6 +93,19 @@ public class EmployeeResource {
 
     @POST
     public Response createEmployee(Employee employee) {
+        // Validate input
+        if (employee == null || employee.getFullName() == null || employee.getFullName().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Employee full name is required")
+                .build();
+        }
+
+        if (employee.getOccupation() == null || employee.getOccupation().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Employee occupation is required")
+                .build();
+        }
+
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             employee.setCreatedAt(LocalDateTime.now());
@@ -157,12 +170,14 @@ public class EmployeeResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("This seat is not assigned to the employee").build();
             }
 
-            employee.removeSeat(seat);
-            
+            // Just set the employee reference to null instead of removing the seat
+            seat.setEmployee(null);
             session.update(seat);
-            session.update(employee);
             
             session.getTransaction().commit();
+            
+            // Refresh the employee to get the updated state
+            session.refresh(employee);
             
             return Response.ok(employee).build();
         }
@@ -174,6 +189,28 @@ public class EmployeeResource {
             @QueryParam("search") @DefaultValue("") String searchTerm,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size) {
+        
+        // Validate pagination parameters
+        if (page < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Page number cannot be negative")
+                .build();
+        }
+
+        if (size <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Page size must be positive")
+                .build();
+        }
+
+        // Set a reasonable maximum page size to prevent performance issues
+        final int MAX_PAGE_SIZE = 100;
+        if (size > MAX_PAGE_SIZE) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Page size cannot exceed " + MAX_PAGE_SIZE)
+                .build();
+        }
+
         try (Session session = sessionFactory.openSession()) {
             // Create the base query for total count
             String countQuery = "select count(distinct e) from Employee e " +

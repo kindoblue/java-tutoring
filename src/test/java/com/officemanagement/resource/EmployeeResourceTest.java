@@ -150,6 +150,101 @@ public class EmployeeResourceTest extends BaseResourceTest {
             .body("seats", hasSize(0));
     }
 
+    @Test
+    public void testCreateEmployeeWithInvalidData() {
+        // Test with empty employee
+        Employee emptyEmployee = new Employee();
+        emptyEmployee.setCreatedAt(LocalDateTime.now());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(emptyEmployee)
+        .when()
+            .post(getApiPath("/employees"))
+        .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // Test with null values
+        Employee nullEmployee = new Employee();
+        nullEmployee.setFullName(null);
+        nullEmployee.setOccupation(null);
+        nullEmployee.setCreatedAt(LocalDateTime.now());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(nullEmployee)
+        .when()
+            .post(getApiPath("/employees"))
+        .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // Test with invalid content type
+        given()
+            .contentType(ContentType.TEXT)
+            .body("Invalid data")
+        .when()
+            .post(getApiPath("/employees"))
+        .then()
+            .statusCode(Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    @Test
+    public void testAssignSeatWithInvalidIds() {
+        // Test with non-existent employee ID
+        given()
+        .when()
+            .put(getApiPath("/employees/99999/assign-seat/1"))
+        .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+
+        // Create an employee but use invalid seat ID
+        Employee employee = new Employee();
+        employee.setFullName("Test Employee");
+        employee.setOccupation("Tester");
+        employee.setCreatedAt(LocalDateTime.now());
+        session.save(employee);
+        commitAndStartNewTransaction();
+
+        given()
+        .when()
+            .put(getApiPath("/employees/" + employee.getId() + "/assign-seat/99999"))
+        .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testSearchEmployeesWithInvalidParameters() {
+        // Test with negative page number
+        given()
+            .queryParam("search", "John")
+            .queryParam("page", "-1")
+            .queryParam("size", "10")
+        .when()
+            .get(getApiPath("/employees/search"))
+        .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // Test with negative page size
+        given()
+            .queryParam("search", "John")
+            .queryParam("page", "0")
+            .queryParam("size", "-1")
+        .when()
+            .get(getApiPath("/employees/search"))
+        .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // Test with extremely large page size
+        given()
+            .queryParam("search", "John")
+            .queryParam("page", "0")
+            .queryParam("size", "1000000")
+        .when()
+            .get(getApiPath("/employees/search"))
+        .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
     private void createTestEmployee(String fullName, String occupation) {
         Employee employee = new Employee();
         employee.setFullName(fullName);
