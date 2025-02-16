@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+
 
 public class SeatResourceTest extends BaseResourceTest {
 

@@ -1,3 +1,4 @@
 target
 .devbox
 .vscode
+.DS_Store
