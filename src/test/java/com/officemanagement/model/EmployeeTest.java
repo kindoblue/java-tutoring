@@ -56,7 +56,7 @@ class EmployeeTest {
         employee.addSeat(seat);
         
         assertTrue(employee.getSeats().contains(seat));
-        assertEquals(employee, seat.getEmployee());
+        assertTrue(seat.getEmployees().contains(employee));
     }
 
     @Test
@@ -66,7 +66,7 @@ class EmployeeTest {
         employee.removeSeat(seat);
         
         assertFalse(employee.getSeats().contains(seat));
-        assertNull(seat.getEmployee());
+        assertFalse(seat.getEmployees().contains(employee));
     }
 
     @Test

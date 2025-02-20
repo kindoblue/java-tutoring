@@ -20,8 +20,13 @@ public class Employee {
 
     private String occupation;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("employee")
+    @ManyToMany
+    @JoinTable(
+        name = "employee_seat_assignments",
+        joinColumns = @JoinColumn(name = "employee_id"),
+        inverseJoinColumns = @JoinColumn(name = "seat_id")
+    )
+    @JsonIgnoreProperties("employees")
     private Set<Seat> seats = new HashSet<>();
 
     @Column(name = "created_at")
@@ -65,12 +70,12 @@ public class Employee {
 
     public void addSeat(Seat seat) {
         seats.add(seat);
-        seat.setEmployee(this);
+        seat.getEmployees().add(this);
     }
 
     public void removeSeat(Seat seat) {
         seats.remove(seat);
-        seat.setEmployee(null);
+        seat.getEmployees().remove(this);
     }
 
     public LocalDateTime getCreatedAt() {

@@ -4,6 +4,7 @@ CREATE DATABASE office_management;
 \c office_management;
 
 -- Drop tables if they exist (in correct order due to foreign keys)
+DROP TABLE IF EXISTS employee_seat_assignments;
 DROP TABLE IF EXISTS seats;
 DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS office_rooms;
@@ -48,8 +49,16 @@ CREATE TABLE seats (
     id BIGINT DEFAULT nextval('seat_seq') PRIMARY KEY,
     seat_number VARCHAR(255) NOT NULL,
     room_id BIGINT REFERENCES office_rooms(id),
-    employee_id BIGINT REFERENCES employees(id), -- add UNIQUE if the employee can only have one seat
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create new join table for employee-seat assignments
+CREATE TABLE employee_seat_assignments (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    employee_id BIGINT REFERENCES employees(id),
+    seat_id BIGINT REFERENCES seats(id),
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(employee_id, seat_id)
 );
 
 -- Insert sample data in correct order

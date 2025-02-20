@@ -131,16 +131,10 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
             }
 
-            // Check if seat is already occupied
-            if (seat.getEmployee() != null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Seat is already occupied").build();
-            }
-
             // Add seat to employee's seats
             employee.addSeat(seat);
             
             // Update both entities
-            session.update(seat);
             session.update(employee);
             
             session.getTransaction().commit();
@@ -165,19 +159,16 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
             }
 
-            // Check if this seat belongs to the employee
-            if (seat.getEmployee() == null || !seat.getEmployee().getId().equals(employeeId)) {
+            // Check if this seat is assigned to the employee
+            if (!employee.getSeats().contains(seat)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("This seat is not assigned to the employee").build();
             }
 
-            // Just set the employee reference to null instead of removing the seat
-            seat.setEmployee(null);
-            session.update(seat);
+            // Remove the seat from employee
+            employee.removeSeat(seat);
+            session.update(employee);
             
             session.getTransaction().commit();
-            
-            // Refresh the employee to get the updated state
-            session.refresh(employee);
             
             return Response.ok(employee).build();
         }

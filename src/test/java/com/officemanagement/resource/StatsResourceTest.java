@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -112,6 +113,7 @@ public class StatsResourceTest extends BaseResourceTest {
         Seat seat = new Seat();
         seat.setSeatNumber(seatNumber);
         seat.setCreatedAt(LocalDateTime.now());
+        seat.setEmployees(new HashSet<>());
         
         // Create a new room object with just the ID to avoid serialization issues
         OfficeRoom roomRef = new OfficeRoom();
@@ -119,12 +121,16 @@ public class StatsResourceTest extends BaseResourceTest {
         seat.setRoom(roomRef);
 
         // Make the request and validate the response
-        given()
+        io.restassured.response.Response response = given()
             .contentType(ContentType.JSON)
             .body(seat)
         .when()
             .post(getApiPath("/seats"))
         .then()
-            .statusCode(Response.Status.CREATED.getStatusCode());
+            .extract().response();
+
+        if (response.getStatusCode() != 201) {
+            throw new RuntimeException("Failed to create seat: " + response.getBody().asString());
+        }
     }
 } 
