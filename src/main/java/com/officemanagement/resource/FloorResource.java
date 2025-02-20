@@ -35,11 +35,12 @@ public class FloorResource {
     @Path("/{id}")
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
-            // Using criteria to fetch the floor and its associations
+            // Using criteria to fetch the floor and all its nested associations
             Floor floor = session.createQuery(
                 "select distinct f from Floor f " +
                 "left join fetch f.rooms r " +
-                "left join fetch r.seats " +
+                "left join fetch r.seats s " +
+                "left join fetch s.employees " +
                 "where f.id = :id", Floor.class)
                 .setParameter("id", id)
                 .uniqueResult();

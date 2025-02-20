@@ -71,7 +71,7 @@ DELETE http://localhost:8080/api/rooms/1
 
 # Seat Resource Operations
 ### Get specific seat
-GET http://localhost:8080/api/seats/1
+GET http://localhost:8080/api/seats/245
 # Response includes: seat details and list of assigned employees
 # Response example:
 # {

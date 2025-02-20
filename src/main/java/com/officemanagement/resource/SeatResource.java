@@ -26,7 +26,14 @@ public class SeatResource {
     @Path("/{id}")
     public Response getSeat(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
-            Seat seat = session.get(Seat.class, id);
+            // Using join fetch to eagerly load the employees collection
+            Seat seat = session.createQuery(
+                "select distinct s from Seat s " +
+                "left join fetch s.employees " +
+                "left join fetch s.room " +
+                "where s.id = :id", Seat.class)
+                .setParameter("id", id)
+                .uniqueResult();
                 
             if (seat == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
