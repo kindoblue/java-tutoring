@@ -131,21 +131,47 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
             }
 
-            // Check if seat is already occupied
-            if (seat.getEmployee() != null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Seat is already occupied").build();
-            }
-
             // Add seat to employee's seats
             employee.addSeat(seat);
             
             // Update both entities
-            session.update(seat);
             session.update(employee);
             
             session.getTransaction().commit();
             
-            return Response.ok(employee).build();
+            /* 
+             * NOTE ON IMPLEMENTATION APPROACH:
+             * 
+             * We reload the employee entity after committing the transaction to prevent 
+             * LazyInitializationException during JSON serialization. This happens because:
+             * 
+             * 1. After commit, the Hibernate session is closed
+             * 2. When serializing the response, Seat.isOccupied() tries to access employees collection
+             * 3. Since session is closed, lazy loading fails with "failed to lazily initialize collection"
+             * 
+             * Trade-offs of this approach:
+             * - PROS: Simple to implement, no need for DTOs or repository pattern
+             * - CONS: Requires an extra database query, less efficient for large object graphs
+             * 
+             * Alternative approaches (not implemented to keep code simple):
+             * 1. Data Transfer Objects (DTOs): Create separate objects for API responses
+             * 2. Repository Pattern: Separate domain models from persistence entities
+             * 3. Entity Graphs: Use JPA entity graphs to specify eager loading
+             * 
+             * For a small to medium application, this approach offers a good balance
+             * between simplicity and functionality.
+             */
+            Employee refreshedEmployee = session.createQuery(
+                "select distinct e from Employee e " +
+                "left join fetch e.seats s " +
+                "left join fetch s.room r " +
+                "left join fetch s.employees " +
+                "where e.id = :id", 
+                Employee.class)
+                .setParameter("id", employeeId)
+                .uniqueResult();
+            
+            return Response.ok(refreshedEmployee).build();
         }
     }
 
@@ -165,21 +191,39 @@ public class EmployeeResource {
                 return Response.status(Response.Status.NOT_FOUND).entity("Seat not found").build();
             }
 
-            // Check if this seat belongs to the employee
-            if (seat.getEmployee() == null || !seat.getEmployee().getId().equals(employeeId)) {
+            // Check if this seat is assigned to the employee
+            if (!employee.getSeats().contains(seat)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("This seat is not assigned to the employee").build();
             }
 
-            // Just set the employee reference to null instead of removing the seat
-            seat.setEmployee(null);
-            session.update(seat);
+            // Remove the seat from employee
+            employee.removeSeat(seat);
+            session.update(employee);
             
             session.getTransaction().commit();
             
-            // Refresh the employee to get the updated state
-            session.refresh(employee);
+            /* 
+             * Same approach as in assignSeat method - we reload the entity after commit.
+             * 
+             * This pragmatic solution prevents lazy initialization exceptions without 
+             * requiring architectural changes like introducing DTOs or repository pattern.
+             * 
+             * While not the most efficient approach for high-volume systems, it's adequate
+             * for most use cases and keeps the codebase straightforward.
+             * 
+             * See the detailed explanation in the assignSeat method.
+             */
+            Employee refreshedEmployee = session.createQuery(
+                "select distinct e from Employee e " +
+                "left join fetch e.seats s " +
+                "left join fetch s.room r " +
+                "left join fetch s.employees " +
+                "where e.id = :id", 
+                Employee.class)
+                .setParameter("id", employeeId)
+                .uniqueResult();
             
-            return Response.ok(employee).build();
+            return Response.ok(refreshedEmployee).build();
         }
     }
 

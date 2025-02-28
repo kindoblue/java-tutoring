@@ -10,6 +10,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 
 @Path("/seats")
 @Produces(MediaType.APPLICATION_JSON)
@@ -25,7 +26,14 @@ public class SeatResource {
     @Path("/{id}")
     public Response getSeat(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
-            Seat seat = session.get(Seat.class, id);
+            // Using join fetch to eagerly load the employees collection
+            Seat seat = session.createQuery(
+                "select distinct s from Seat s " +
+                "left join fetch s.employees " +
+                "left join fetch s.room " +
+                "where s.id = :id", Seat.class)
+                .setParameter("id", id)
+                .uniqueResult();
                 
             if (seat == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -39,6 +47,13 @@ public class SeatResource {
     public Response createSeat(Seat seat) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
+            
+            // Validate seat number
+            if (seat.getSeatNumber() == null || seat.getSeatNumber().trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Seat number is required")
+                    .build();
+            }
             
             // Validate that room is provided
             if (seat.getRoom() == null || seat.getRoom().getId() == null) {
@@ -56,12 +71,12 @@ public class SeatResource {
             }
 
             // Check for duplicate seat number in the same room
-            String hql = "FROM Seat s WHERE s.room.id = :roomId AND s.seatNumber = :seatNumber";
-            Long count = session.createQuery(hql, Seat.class)
+            Long count = session.createQuery(
+                "SELECT COUNT(s) FROM Seat s WHERE s.room.id = :roomId AND s.seatNumber = :seatNumber",
+                Long.class)
                 .setParameter("roomId", room.getId())
-                .setParameter("seatNumber", seat.getSeatNumber())
-                .stream()
-                .count();
+                .setParameter("seatNumber", seat.getSeatNumber().trim())
+                .getSingleResult();
 
             if (count > 0) {
                 return Response.status(Response.Status.CONFLICT)
@@ -71,17 +86,26 @@ public class SeatResource {
             
             // Set the room and creation timestamp
             seat.setRoom(room);
-            seat.setCreatedAt(LocalDateTime.now());
+            if (seat.getCreatedAt() == null) {
+                seat.setCreatedAt(LocalDateTime.now());
+            }
+            seat.setSeatNumber(seat.getSeatNumber().trim());
+            
+            // Initialize the employees set if null
+            if (seat.getEmployees() == null) {
+                seat.setEmployees(new HashSet<>());
+            }
             
             // Save the seat
             session.save(seat);
             session.getTransaction().commit();
             
-            // Refresh the seat to get the generated ID
-            session.refresh(seat);
-            
             return Response.status(Response.Status.CREATED)
                 .entity(seat)
+                .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Failed to create seat: " + e.getMessage())
                 .build();
         }
     }
@@ -156,10 +180,10 @@ public class SeatResource {
                     .build();
             }
             
-            // Check if seat is assigned to an employee
-            if (seat.getEmployee() != null) {
+            // Check if seat is assigned to any employees
+            if (!seat.getEmployees().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Cannot delete seat that is assigned to an employee")
+                    .entity("Cannot delete seat that is assigned to employees")
                     .build();
             }
             

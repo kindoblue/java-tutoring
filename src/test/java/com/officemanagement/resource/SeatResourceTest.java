@@ -11,6 +11,10 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class SeatResourceTest extends BaseResourceTest {
@@ -171,5 +175,102 @@ public class SeatResourceTest extends BaseResourceTest {
             .put(getApiPath("/seats/99999"))
         .then()
             .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testMultipleEmployeesPerSeat() {
+        // Create necessary test data
+        Floor floor = new Floor();
+        floor.setName("Test Floor");
+        floor.setFloorNumber(1);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+
+        OfficeRoom room = new OfficeRoom();
+        room.setName("Test Room");
+        room.setRoomNumber("101");
+        room.setFloor(floor);
+        room.setCreatedAt(LocalDateTime.now());
+        session.save(room);
+
+        // Create a seat
+        Seat seat = new Seat();
+        seat.setSeatNumber("A1");
+        seat.setRoom(room);
+        seat.setCreatedAt(LocalDateTime.now());
+        session.save(seat);
+
+        // Create first employee
+        Employee employee1 = new Employee();
+        employee1.setFullName("Test Employee 1");
+        employee1.setOccupation("Developer");
+        employee1.setCreatedAt(LocalDateTime.now());
+        session.save(employee1);
+
+        // Create second employee
+        Employee employee2 = new Employee();
+        employee2.setFullName("Test Employee 2");
+        employee2.setOccupation("Designer");
+        employee2.setCreatedAt(LocalDateTime.now());
+        session.save(employee2);
+
+        commitAndStartNewTransaction();
+
+        // Assign first employee to seat
+        given()
+        .when()
+            .put(getApiPath("/employees/" + employee1.getId() + "/assign-seat/" + seat.getId()))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .body("seats", hasSize(1))
+            .body("seats[0].id", equalTo(seat.getId().intValue()));
+
+        // Assign second employee to the same seat
+        given()
+        .when()
+            .put(getApiPath("/employees/" + employee2.getId() + "/assign-seat/" + seat.getId()))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .body("seats", hasSize(1))
+            .body("seats[0].id", equalTo(seat.getId().intValue()));
+
+        // Verify the seat has both employees using a direct database query
+        session.clear(); // Clear the session to ensure we get fresh data
+        Seat verifiedSeat = session.createQuery(
+            "SELECT DISTINCT s FROM Seat s " +
+            "LEFT JOIN FETCH s.employees " +
+            "WHERE s.id = :seatId", 
+            Seat.class)
+            .setParameter("seatId", seat.getId())
+            .uniqueResult();
+        
+        assertEquals(2, verifiedSeat.getEmployees().size());
+        assertTrue(verifiedSeat.getEmployees().stream()
+            .map(Employee::getFullName)
+            .anyMatch(name -> name.equals("Test Employee 1")));
+        assertTrue(verifiedSeat.getEmployees().stream()
+            .map(Employee::getFullName)
+            .anyMatch(name -> name.equals("Test Employee 2")));
+
+        // Unassign first employee
+        given()
+        .when()
+            .delete(getApiPath("/employees/" + employee1.getId() + "/unassign-seat/" + seat.getId()))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+
+        // Verify seat still has second employee using a direct database query
+        session.clear(); // Clear the session to ensure we get fresh data
+        verifiedSeat = session.createQuery(
+            "SELECT DISTINCT s FROM Seat s " +
+            "LEFT JOIN FETCH s.employees " +
+            "WHERE s.id = :seatId", 
+            Seat.class)
+            .setParameter("seatId", seat.getId())
+            .uniqueResult();
+        
+        assertEquals(1, verifiedSeat.getEmployees().size());
+        assertEquals("Test Employee 2", verifiedSeat.getEmployees().iterator().next().getFullName());
+        assertEquals("Designer", verifiedSeat.getEmployees().iterator().next().getOccupation());
     }
 } 
