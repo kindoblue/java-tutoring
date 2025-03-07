@@ -19,6 +19,9 @@ public class Floor {
     private Integer floorNumber;
 
     private String name;
+    
+    @Column(name = "floor_plan")
+    private String planimetry;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -59,6 +62,14 @@ public class Floor {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPlanimetry() {
+        return planimetry; 
+    }
+
+    public void setPlanimetry(String planimetry) {
+        this.planimetry = planimetry; 
     }
 
     public LocalDateTime getCreatedAt() {
