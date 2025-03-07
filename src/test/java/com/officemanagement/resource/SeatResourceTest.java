@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
 public class SeatResourceTest extends BaseResourceTest {
@@ -272,5 +273,128 @@ public class SeatResourceTest extends BaseResourceTest {
         assertEquals(1, verifiedSeat.getEmployees().size());
         assertEquals("Test Employee 2", verifiedSeat.getEmployees().iterator().next().getFullName());
         assertEquals("Designer", verifiedSeat.getEmployees().iterator().next().getOccupation());
+    }
+
+    @Test
+    public void testAdvancedMultipleEmployeesPerSeat() {
+        // Create necessary test data
+        Floor floor = new Floor();
+        floor.setName("Advanced Test Floor");
+        floor.setFloorNumber(3);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+
+        OfficeRoom room = new OfficeRoom();
+        room.setName("Advanced Test Room");
+        room.setRoomNumber("301");
+        room.setFloor(floor);
+        room.setCreatedAt(LocalDateTime.now());
+        session.save(room);
+
+        // Create a seat
+        Seat seat = new Seat();
+        seat.setSeatNumber("Advanced Test Seat");
+        seat.setRoom(room);
+        seat.setCreatedAt(LocalDateTime.now());
+        session.save(seat);
+
+        // Create multiple employees (5 employees)
+        Employee[] employees = new Employee[5];
+        for (int i = 0; i < 5; i++) {
+            employees[i] = new Employee();
+            employees[i].setFullName("Advanced Test Employee " + (i + 1));
+            employees[i].setOccupation("Role " + (i + 1));
+            employees[i].setCreatedAt(LocalDateTime.now());
+            session.save(employees[i]);
+        }
+        
+        commitAndStartNewTransaction();
+        flushAndClear();
+
+        // Assign all 5 employees to the same seat
+        for (int i = 0; i < 5; i++) {
+            given()
+            .when()
+                .put(getApiPath("/employees/" + employees[i].getId() + "/assign-seat/" + seat.getId()))
+            .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("seats", hasSize(1))
+                .body("seats[0].id", equalTo(seat.getId().intValue()));
+        }
+
+        // Verify the seat has all 5 employees using a direct database query
+        session.clear(); // Clear the session to ensure we get fresh data
+        Seat verifiedSeat = session.createQuery(
+            "SELECT DISTINCT s FROM Seat s " +
+            "LEFT JOIN FETCH s.employees " +
+            "WHERE s.id = :seatId", 
+            Seat.class)
+            .setParameter("seatId", seat.getId())
+            .uniqueResult();
+        
+        assertEquals(5, verifiedSeat.getEmployees().size());
+        
+        // Verify each employee is correctly assigned
+        for (int i = 0; i < 5; i++) {
+            final Long employeeId = employees[i].getId();
+            assertTrue(verifiedSeat.getEmployees().stream()
+                .map(Employee::getId)
+                .anyMatch(id -> id.equals(employeeId)));
+        }
+
+        // Unassign employees one by one and verify the remaining count
+        for (int i = 0; i < 4; i++) {
+            given()
+            .when()
+                .delete(getApiPath("/employees/" + employees[i].getId() + "/unassign-seat/" + seat.getId()))
+            .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+            // Verify the seat has one less employee
+            session.clear();
+            verifiedSeat = session.createQuery(
+                "SELECT DISTINCT s FROM Seat s " +
+                "LEFT JOIN FETCH s.employees " +
+                "WHERE s.id = :seatId", 
+                Seat.class)
+                .setParameter("seatId", seat.getId())
+                .uniqueResult();
+            
+            assertEquals(4 - i, verifiedSeat.getEmployees().size());
+            
+            // Verify the unassigned employee is no longer in the seat
+            final Long unassignedEmployeeId = employees[i].getId();
+            assertFalse(verifiedSeat.getEmployees().stream()
+                .map(Employee::getId)
+                .anyMatch(id -> id.equals(unassignedEmployeeId)));
+            
+            // Verify the remaining employees are still assigned
+            for (int j = i + 1; j < 5; j++) {
+                final Long remainingEmployeeId = employees[j].getId();
+                assertTrue(verifiedSeat.getEmployees().stream()
+                    .map(Employee::getId)
+                    .anyMatch(id -> id.equals(remainingEmployeeId)));
+            }
+        }
+
+        // Unassign the last employee
+        given()
+        .when()
+            .delete(getApiPath("/employees/" + employees[4].getId() + "/unassign-seat/" + seat.getId()))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+
+        // Verify the seat has no employees
+        session.clear();
+        verifiedSeat = session.createQuery(
+            "SELECT DISTINCT s FROM Seat s " +
+            "LEFT JOIN FETCH s.employees " +
+            "WHERE s.id = :seatId", 
+            Seat.class)
+            .setParameter("seatId", seat.getId())
+            .uniqueResult();
+        
+        assertEquals(0, verifiedSeat.getEmployees().size());
+        assertTrue(verifiedSeat.getEmployees().isEmpty());
     }
 } 
