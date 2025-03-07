@@ -6,8 +6,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,8 +27,8 @@ public class FloorResource {
     public Response getAllFloors() {
         try (Session session = sessionFactory.openSession()) {
             List<Floor> floors = session.createQuery(
-                "select new Floor(f.id, f.name, f.floorNumber) from Floor f", 
-                Floor.class).list();
+                    "select new Floor(f.id, f.name, f.floorNumber) from Floor f",
+                    Floor.class).list();
             return Response.ok(floors).build();
         }
     }
@@ -35,20 +37,46 @@ public class FloorResource {
     @Path("/{id}")
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
-            // Using criteria to fetch the floor and all its nested associations
+            // Using criteria to fetch the floor and its associations
             Floor floor = session.createQuery(
-                "select distinct f from Floor f " +
-                "left join fetch f.rooms r " +
-                "left join fetch r.seats s " +
-                "left join fetch s.employees " +
-                "where f.id = :id", Floor.class)
-                .setParameter("id", id)
-                .uniqueResult();
-                
+                    "select distinct f from Floor f " +
+                            "left join fetch f.rooms r " +
+                            "left join fetch r.seats s " +
+                            "left join fetch s.employees " +
+                            "where f.id = :id",
+                    Floor.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
+
             if (floor == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
+
+            // Set planimetry to null to exclude it from the response
+            floor.setPlanimetry(null);
+
             return Response.ok(floor).build();
+        }
+    }
+
+    @GET
+    @Path("/{id}/svg")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getFloorPlan(@PathParam("id") Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            String planimetry = session.createQuery(
+                    "select f.planimetry from Floor f where f.id = :id", String.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
+
+            if (planimetry == null || planimetry.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            return Response.ok(planimetry)
+                    .type("image/svg+xml")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=floor" + id + ".svg")
+                    .build();
         }
     }
 
@@ -57,27 +85,27 @@ public class FloorResource {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Floor name is required")
-                .build();
+                    .entity("Floor name is required")
+                    .build();
         }
 
         if (floor.getFloorNumber() == null || floor.getFloorNumber() < 0) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Valid floor number is required (must be 0 or greater)")
-                .build();
+                    .entity("Valid floor number is required (must be 0 or greater)")
+                    .build();
         }
 
         try (Session session = sessionFactory.openSession()) {
             // Check for duplicate floor number
             Long count = session.createQuery(
-                "SELECT COUNT(f) FROM Floor f WHERE f.floorNumber = :floorNumber", Long.class)
-                .setParameter("floorNumber", floor.getFloorNumber())
-                .uniqueResult();
+                    "SELECT COUNT(f) FROM Floor f WHERE f.floorNumber = :floorNumber", Long.class)
+                    .setParameter("floorNumber", floor.getFloorNumber())
+                    .uniqueResult();
 
             if (count > 0) {
                 return Response.status(Response.Status.CONFLICT)
-                    .entity("A floor with number " + floor.getFloorNumber() + " already exists")
-                    .build();
+                        .entity("A floor with number " + floor.getFloorNumber() + " already exists")
+                        .build();
             }
 
             session.beginTransaction();
@@ -94,35 +122,35 @@ public class FloorResource {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Floor name is required")
-                .build();
+                    .entity("Floor name is required")
+                    .build();
         }
 
         if (floor.getFloorNumber() == null || floor.getFloorNumber() < 0) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Valid floor number is required (must be 0 or greater)")
-                .build();
+                    .entity("Valid floor number is required (must be 0 or greater)")
+                    .build();
         }
 
         try (Session session = sessionFactory.openSession()) {
             Floor existingFloor = session.get(Floor.class, id);
             if (existingFloor == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity("Floor not found")
-                    .build();
+                        .entity("Floor not found")
+                        .build();
             }
 
             // Check for duplicate floor number (excluding current floor)
             Long count = session.createQuery(
-                "SELECT COUNT(f) FROM Floor f WHERE f.floorNumber = :floorNumber AND f.id != :id", Long.class)
-                .setParameter("floorNumber", floor.getFloorNumber())
-                .setParameter("id", id)
-                .uniqueResult();
+                    "SELECT COUNT(f) FROM Floor f WHERE f.floorNumber = :floorNumber AND f.id != :id", Long.class)
+                    .setParameter("floorNumber", floor.getFloorNumber())
+                    .setParameter("id", id)
+                    .uniqueResult();
 
             if (count > 0) {
                 return Response.status(Response.Status.CONFLICT)
-                    .entity("A floor with number " + floor.getFloorNumber() + " already exists")
-                    .build();
+                        .entity("A floor with number " + floor.getFloorNumber() + " already exists")
+                        .build();
             }
 
             session.beginTransaction();
@@ -140,23 +168,23 @@ public class FloorResource {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             Floor floor = session.get(Floor.class, id);
-            
+
             if (floor == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity("Floor not found")
-                    .build();
+                        .entity("Floor not found")
+                        .build();
             }
 
             // Check if floor has rooms
             Long roomCount = session.createQuery(
-                "SELECT COUNT(r) FROM OfficeRoom r WHERE r.floor.id = :floorId", Long.class)
-                .setParameter("floorId", id)
-                .uniqueResult();
+                    "SELECT COUNT(r) FROM OfficeRoom r WHERE r.floor.id = :floorId", Long.class)
+                    .setParameter("floorId", id)
+                    .uniqueResult();
 
             if (roomCount > 0) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Cannot delete floor that has rooms")
-                    .build();
+                        .entity("Cannot delete floor that has rooms")
+                        .build();
             }
 
             session.delete(floor);
@@ -164,4 +192,4 @@ public class FloorResource {
             return Response.noContent().build();
         }
     }
-} 
+}
