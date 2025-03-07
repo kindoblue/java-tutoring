@@ -155,12 +155,22 @@ public class SeatResourceTest extends BaseResourceTest {
         session.flush();
         commitAndStartNewTransaction();
 
-        // Attempt to delete seat with assigned employee (should fail)
+        // Delete seat with assigned employee (should succeed now)
         given()
         .when()
             .delete(getApiPath("/seats/" + seat.getId()))
         .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NO_CONTENT.getStatusCode());
+
+        // Verify the seat is deleted
+        session.clear();
+        Seat deletedSeat = session.get(Seat.class, seat.getId());
+        assertFalse(deletedSeat != null, "Seat should be deleted");
+
+        // Verify the employee still exists but no longer has the seat assigned
+        Employee updatedEmployee = session.get(Employee.class, employee.getId());
+        assertTrue(updatedEmployee != null, "Employee should still exist");
+        assertTrue(updatedEmployee.getSeats().isEmpty(), "Employee should not have any seats assigned");
     }
 
     @Test

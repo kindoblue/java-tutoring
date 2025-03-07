@@ -37,6 +37,10 @@ DELETE http://localhost:8080/api/floors/1
 # Will fail if floor has any rooms
 
 # Room Resource Operations
+### Get all rooms
+GET http://localhost:8080/api/rooms
+# Response includes: list of rooms with basic info
+
 ### Get specific room with seats
 GET http://localhost:8080/api/rooms/1
 # Response includes: room details, seats, and employees assigned to each seat
@@ -70,6 +74,10 @@ DELETE http://localhost:8080/api/rooms/1
 # Will fail if room has any seats
 
 # Seat Resource Operations
+### Get all seats
+GET http://localhost:8080/api/seats
+# Response includes: list of seats with basic info
+
 ### Get specific seat
 GET http://localhost:8080/api/seats/245
 # Response includes: seat details and list of assigned employees
@@ -104,9 +112,14 @@ Content-Type: application/json
 
 ### Delete seat
 DELETE http://localhost:8080/api/seats/1
-# Will fail with 400 Bad Request if seat has any assigned employees
+# Automatically removes all associations between this seat and any employees before deletion
+# This ensures no orphaned relationships remain in the system
 
 # Employee Resource Operations
+### Get all employees
+GET http://localhost:8080/api/employees
+# Response includes: list of employees with basic info
+
 ### Get specific employee with seat information
 GET http://localhost:8080/api/employees/1
 # Response includes: employee details and list of assigned seats
@@ -133,6 +146,20 @@ Content-Type: application/json
     "fullName": "John Doe",
     "occupation": "Software Engineer"
 }
+
+### Update employee
+PUT http://localhost:8080/api/employees/1
+Content-Type: application/json
+
+{
+    "fullName": "Updated John Doe",
+    "occupation": "Senior Software Engineer"
+}
+
+### Delete employee
+DELETE http://localhost:8080/api/employees/1
+# Automatically removes all associations between this employee and any seats before deletion
+# This ensures no orphaned relationships remain in the system
 
 ### Assign seat to employee
 PUT http://localhost:8080/api/employees/1/assign-seat/1

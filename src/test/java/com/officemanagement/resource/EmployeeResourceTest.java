@@ -738,6 +738,82 @@ public class EmployeeResourceTest extends BaseResourceTest {
         assertTrue(verifiedSeat.getEmployees().isEmpty());
     }
 
+    @Test
+    public void testDeleteEmployeeWithAssignedSeats() {
+        // Create test data directly in the database
+        Employee employee = new Employee();
+        employee.setFullName("Test Employee");
+        employee.setOccupation("Tester");
+        employee.setCreatedAt(LocalDateTime.now());
+        session.save(employee);
+
+        // Create a floor first
+        Floor floor = new Floor();
+        floor.setName("Test Floor");
+        floor.setFloorNumber(1);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+
+        // Create a room
+        OfficeRoom room = new OfficeRoom();
+        room.setName("Test Room");
+        room.setRoomNumber("101");
+        room.setFloor(floor);
+        room.setCreatedAt(LocalDateTime.now());
+        session.save(room);
+
+        // Create two seats with room reference
+        Seat seat1 = new Seat();
+        seat1.setSeatNumber("Test Seat 1");
+        seat1.setCreatedAt(LocalDateTime.now());
+        seat1.setRoom(room);
+        session.save(seat1);
+        
+        Seat seat2 = new Seat();
+        seat2.setSeatNumber("Test Seat 2");
+        seat2.setCreatedAt(LocalDateTime.now());
+        seat2.setRoom(room);
+        session.save(seat2);
+        
+        // Assign both seats to the employee
+        employee.addSeat(seat1);
+        employee.addSeat(seat2);
+        session.flush();
+        commitAndStartNewTransaction();
+        flushAndClear();
+
+        // Delete the employee with assigned seats
+        given()
+        .when()
+            .delete(getApiPath("/employees/" + employee.getId()))
+        .then()
+            .statusCode(Response.Status.NO_CONTENT.getStatusCode());
+
+        // Verify the employee is deleted
+        session.clear();
+        Employee deletedEmployee = session.get(Employee.class, employee.getId());
+        assertFalse(deletedEmployee != null, "Employee should be deleted");
+
+        // Verify the seats still exist but no longer have the employee assigned
+        Seat updatedSeat1 = session.get(Seat.class, seat1.getId());
+        Seat updatedSeat2 = session.get(Seat.class, seat2.getId());
+        
+        assertTrue(updatedSeat1 != null, "Seat 1 should still exist");
+        assertTrue(updatedSeat2 != null, "Seat 2 should still exist");
+        
+        assertTrue(updatedSeat1.getEmployees().isEmpty(), "Seat 1 should not have any employees assigned");
+        assertTrue(updatedSeat2.getEmployees().isEmpty(), "Seat 2 should not have any employees assigned");
+    }
+
+    @Test
+    public void testDeleteNonExistentEmployee() {
+        given()
+        .when()
+            .delete(getApiPath("/employees/999999"))
+        .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
     private void createTestEmployee(String fullName, String occupation) {
         Employee employee = new Employee();
         employee.setFullName(fullName);
