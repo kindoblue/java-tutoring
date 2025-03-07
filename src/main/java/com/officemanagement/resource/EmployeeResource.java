@@ -59,6 +59,7 @@ public class EmployeeResource {
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
                 "left join fetch s.room r " +
+                "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
                 .setParameter("id", id)
@@ -79,6 +80,7 @@ public class EmployeeResource {
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
                 "left join fetch s.room r " +
+                "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
                 .setParameter("id", id)
@@ -269,6 +271,7 @@ public class EmployeeResource {
             String query = "select distinct e from Employee e " +
                     "left join fetch e.seats s " +
                     "left join fetch s.room r " +
+                    "left join fetch s.employees " +
                     "where lower(e.fullName) like lower(:searchTerm) " +
                     "or lower(e.occupation) like lower(:searchTerm)";
 
