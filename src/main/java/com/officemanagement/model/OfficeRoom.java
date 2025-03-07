@@ -3,7 +3,8 @@ package com.officemanagement.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "office_rooms")
@@ -29,7 +30,7 @@ public class OfficeRoom {
 
     @OneToMany(mappedBy = "room", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("room")
-    private List<Seat> seats;
+    private Set<Seat> seats = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -71,11 +72,11 @@ public class OfficeRoom {
         this.createdAt = createdAt;
     }
 
-    public List<Seat> getSeats() {
+    public Set<Seat> getSeats() {
         return seats;
     }
 
-    public void setSeats(List<Seat> seats) {
+    public void setSeats(Set<Seat> seats) {
         this.seats = seats;
     }
 } 
