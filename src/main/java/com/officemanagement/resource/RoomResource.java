@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
@@ -116,7 +117,7 @@ public class RoomResource {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             
-            List<Seat> seats = room.getSeats();
+            Set<Seat> seats = room.getSeats();
             return Response.ok(seats).build();
         }
     }
