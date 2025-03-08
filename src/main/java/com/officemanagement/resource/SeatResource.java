@@ -2,6 +2,7 @@ package com.officemanagement.resource;
 
 import com.officemanagement.model.Seat;
 import com.officemanagement.model.OfficeRoom;
+import com.officemanagement.model.Employee;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -11,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 
 @Path("/seats")
 @Produces(MediaType.APPLICATION_JSON)
@@ -180,12 +182,18 @@ public class SeatResource {
                     .build();
             }
             
-            // Check if seat is assigned to any employees
-            if (!seat.getEmployees().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Cannot delete seat that is assigned to employees")
-                    .build();
+            // Get all employees associated with this seat
+            Set<Employee> employees = new HashSet<>(seat.getEmployees());
+            
+            // Remove the seat from all associated employees
+            for (Employee employee : employees) {
+                employee.getSeats().remove(seat);
+                session.update(employee);
             }
+            
+            // Clear the seat's employees collection
+            seat.getEmployees().clear();
+            session.update(seat);
             
             // Delete the seat
             session.delete(seat);

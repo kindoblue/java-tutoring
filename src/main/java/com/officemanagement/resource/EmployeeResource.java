@@ -10,7 +10,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 // Add static inner class for pagination response
 class PageResponse<T> {
@@ -226,6 +228,41 @@ public class EmployeeResource {
                 .uniqueResult();
             
             return Response.ok(refreshedEmployee).build();
+        }
+    }
+
+    @DELETE
+    @Path("/{id}")
+    public Response deleteEmployee(@PathParam("id") Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            
+            // Check if employee exists
+            Employee employee = session.get(Employee.class, id);
+            if (employee == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Employee not found")
+                    .build();
+            }
+            
+            // Get all seats associated with this employee
+            Set<Seat> seats = new HashSet<>(employee.getSeats());
+            
+            // Remove the employee from all associated seats
+            for (Seat seat : seats) {
+                seat.getEmployees().remove(employee);
+                session.update(seat);
+            }
+            
+            // Clear the employee's seats collection
+            employee.getSeats().clear();
+            session.update(employee);
+            
+            // Delete the employee
+            session.delete(employee);
+            session.getTransaction().commit();
+            
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
 
