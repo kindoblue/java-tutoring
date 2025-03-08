@@ -1,6 +1,8 @@
 package com.officemanagement.resource;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.officemanagement.model.Floor;
+import com.officemanagement.model.Seat;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -35,6 +37,7 @@ public class FloorResource {
 
     @GET
     @Path("/{id}")
+    @JsonView(Seat.Views.Full.class)
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             // Using criteria to fetch the floor and its associations
@@ -81,6 +84,7 @@ public class FloorResource {
     }
 
     @POST
+    @JsonView(Seat.Views.Full.class)
     public Response createFloor(Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
@@ -118,6 +122,7 @@ public class FloorResource {
 
     @PUT
     @Path("/{id}")
+    @JsonView(Seat.Views.Full.class)
     public Response updateFloor(@PathParam("id") Long id, Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {

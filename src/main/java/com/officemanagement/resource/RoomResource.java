@@ -1,5 +1,6 @@
 package com.officemanagement.resource;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.officemanagement.model.OfficeRoom;
 import com.officemanagement.model.Seat;
 import com.officemanagement.model.Floor;
@@ -25,6 +26,7 @@ public class RoomResource {
     }
 
     @POST
+    @JsonView(Seat.Views.Full.class)
     public Response createRoom(OfficeRoom room) {
         // Validate input
         if (room == null || room.getName() == null || room.getName().trim().isEmpty()) {
@@ -84,6 +86,7 @@ public class RoomResource {
 
     @GET
     @Path("/{id}")
+    @JsonView(Seat.Views.Full.class)
     public Response getRoom(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             OfficeRoom room = session.createQuery(
@@ -104,6 +107,7 @@ public class RoomResource {
 
     @GET
     @Path("/{id}/seats")
+    @JsonView(Seat.Views.Full.class)
     public Response getRoomSeats(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             OfficeRoom room = session.createQuery(
@@ -124,6 +128,7 @@ public class RoomResource {
 
     @PUT
     @Path("/{id}")
+    @JsonView(Seat.Views.Full.class)
     public Response updateRoom(@PathParam("id") Long id, OfficeRoom room) {
         // Validate input
         if (room == null || room.getName() == null || room.getName().trim().isEmpty()) {
