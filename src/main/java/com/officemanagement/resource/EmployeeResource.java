@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonView;
 
 // Add static inner class for pagination response
 class PageResponse<T> {
@@ -57,7 +56,6 @@ public class EmployeeResource {
 
     @GET
     @Path("/{id}")
-    @JsonView(Floor.Views.Base.class)
     public Response getEmployee(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             Employee employee = session.createQuery(
@@ -81,7 +79,6 @@ public class EmployeeResource {
 
     @GET
     @Path("/{id}/seats")
-    @JsonView(Floor.Views.Base.class)
     public Response getEmployeeSeats(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             Employee employee = session.createQuery(
@@ -104,7 +101,6 @@ public class EmployeeResource {
     }
 
     @POST
-    @JsonView(Floor.Views.Base.class)
     public Response createEmployee(Employee employee) {
         // Validate input
         if (employee == null || employee.getFullName() == null || employee.getFullName().trim().isEmpty()) {
@@ -130,7 +126,6 @@ public class EmployeeResource {
 
     @PUT
     @Path("/{id}/assign-seat/{seatId}")
-    @JsonView(Floor.Views.Base.class)
     public Response assignSeat(@PathParam("id") Long employeeId, @PathParam("seatId") Long seatId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -192,7 +187,6 @@ public class EmployeeResource {
 
     @DELETE
     @Path("/{employeeId}/unassign-seat/{seatId}")
-    @JsonView(Floor.Views.Base.class)
     public Response unassignSeat(@PathParam("employeeId") Long employeeId, @PathParam("seatId") Long seatId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -281,7 +275,6 @@ public class EmployeeResource {
 
     @GET
     @Path("/search")
-    @JsonView(Floor.Views.Base.class)
     public Response searchEmployees(
             @QueryParam("search") @DefaultValue("") String searchTerm,
             @QueryParam("page") @DefaultValue("0") int page,

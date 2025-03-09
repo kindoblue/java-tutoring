@@ -32,7 +32,8 @@ cat > "$TMP_SQL" << EOF
 -- Insert base64 encoded SVG content into temporary table
 INSERT INTO temp_svg_loader (svg_content, is_base64) VALUES ('$SVG_BASE64', TRUE);
 
--- Update the floor plan
+-- Update the floor planimetry data via the update_floor_plan function
+-- This function will handle inserting or updating the floor_planimetry table
 SELECT update_floor_plan($FLOOR_ID);
 EOF
 

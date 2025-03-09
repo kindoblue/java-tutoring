@@ -22,6 +22,7 @@
 
         <!-- Mapping files -->
         <mapping class="com.officemanagement.model.Floor"/>
+        <mapping class="com.officemanagement.model.FloorPlanimetry"/>
         <mapping class="com.officemanagement.model.OfficeRoom"/>
         <mapping class="com.officemanagement.model.Seat"/>
         <mapping class="com.officemanagement.model.Employee"/>

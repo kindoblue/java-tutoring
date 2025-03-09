@@ -1,6 +1,7 @@
 package com.officemanagement.resource;
 
 import com.officemanagement.model.Floor;
+import com.officemanagement.model.FloorPlanimetry;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -12,7 +13,6 @@ import javax.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonView;
 
 @Path("/floors")
 @Produces(MediaType.APPLICATION_JSON)
@@ -25,7 +25,6 @@ public class FloorResource {
     }
 
     @GET
-    @JsonView(Floor.Views.Base.class)
     public Response getAllFloors() {
         try (Session session = sessionFactory.openSession()) {
             List<Floor> floors = session.createQuery(
@@ -37,7 +36,6 @@ public class FloorResource {
 
     @GET
     @Path("/{id}")
-    @JsonView(Floor.Views.Base.class)
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             // Using criteria to fetch the floor and its associations
@@ -64,8 +62,9 @@ public class FloorResource {
     @Produces(MediaType.APPLICATION_XML)
     public Response getFloorPlan(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
+            // Query the floor_planimetry table directly
             String planimetry = session.createQuery(
-                    "select f.planimetry from Floor f where f.id = :id", String.class)
+                    "select fp.planimetry from FloorPlanimetry fp where fp.floorId = :id", String.class)
                     .setParameter("id", id)
                     .uniqueResult();
 
@@ -81,7 +80,6 @@ public class FloorResource {
     }
 
     @POST
-    @JsonView(Floor.Views.Base.class)
     public Response createFloor(Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
@@ -119,7 +117,6 @@ public class FloorResource {
 
     @PUT
     @Path("/{id}")
-    @JsonView(Floor.Views.Base.class)
     public Response updateFloor(@PathParam("id") Long id, Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
@@ -189,9 +186,56 @@ public class FloorResource {
                         .build();
             }
 
+            // Delete associated planimetry data if exists
+            session.createQuery("DELETE FROM FloorPlanimetry fp WHERE fp.floorId = :floorId")
+                    .setParameter("floorId", id)
+                    .executeUpdate();
+
             session.delete(floor);
             session.getTransaction().commit();
             return Response.noContent().build();
+        }
+    }
+
+    @PUT
+    @Path("/{id}/svg")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response updateFloorPlan(@PathParam("id") Long id, String svgData) {
+        if (svgData == null || svgData.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("SVG data cannot be empty")
+                    .build();
+        }
+
+        try (Session session = sessionFactory.openSession()) {
+            Floor floor = session.get(Floor.class, id);
+            if (floor == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Floor not found")
+                        .build();
+            }
+
+            session.beginTransaction();
+            
+            // Check if planimetry data exists
+            FloorPlanimetry planimetry = session.get(FloorPlanimetry.class, id);
+            
+            if (planimetry == null) {
+                // Create new planimetry entity
+                planimetry = new FloorPlanimetry();
+                planimetry.setFloor(floor);
+                planimetry.setPlanimetry(svgData);
+                planimetry.setLastUpdated(LocalDateTime.now());
+                session.save(planimetry);
+            } else {
+                // Update existing planimetry
+                planimetry.setPlanimetry(svgData);
+                planimetry.setLastUpdated(LocalDateTime.now());
+                session.update(planimetry);
+            }
+
+            session.getTransaction().commit();
+            return Response.ok().build();
         }
     }
 }

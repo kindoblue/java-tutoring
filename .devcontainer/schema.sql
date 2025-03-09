@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS seats;
 DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS office_rooms;
 DROP TABLE IF EXISTS floors;
+DROP TABLE IF EXISTS floor_planimetry;
 
 -- Drop sequences if they exist
 DROP SEQUENCE IF EXISTS employee_seq;
@@ -26,8 +27,15 @@ CREATE TABLE floors (
     id BIGINT DEFAULT nextval('floor_seq') PRIMARY KEY,
     floor_number INTEGER NOT NULL,
     name VARCHAR(255),
-    floor_plan TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create a separate table for planimetry data
+CREATE TABLE floor_planimetry (
+    floor_id BIGINT PRIMARY KEY,
+    planimetry TEXT,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_floor_planimetry_floor FOREIGN KEY (floor_id) REFERENCES floors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE office_rooms (
@@ -214,10 +222,13 @@ BEGIN
         svg_data := convert_from(decode(svg_data, 'base64'), 'UTF8');
     END IF;
     
-    -- Update the floor record with the SVG content
-    UPDATE floors
-    SET floor_plan = svg_data
-    WHERE id = floor_id;
+    -- Insert or update the planimetry record
+    INSERT INTO floor_planimetry (floor_id, planimetry, last_updated)
+    VALUES (floor_id, svg_data, CURRENT_TIMESTAMP)
+    ON CONFLICT (floor_id) 
+    DO UPDATE SET 
+        planimetry = EXCLUDED.planimetry,
+        last_updated = CURRENT_TIMESTAMP;
     
     -- Clean up the temporary table
     DELETE FROM temp_svg_loader;

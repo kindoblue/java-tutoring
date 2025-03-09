@@ -1,7 +1,6 @@
 package com.officemanagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonView;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -14,29 +13,23 @@ public class OfficeRoom {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "office_room_seq")
     @SequenceGenerator(name = "office_room_seq", sequenceName = "office_room_seq", allocationSize = 1)
     @Column(name = "id", nullable = false, updatable = false)
-    @JsonView(Floor.Views.Base.class)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "floor_id")
     @JsonIgnoreProperties("rooms")
-    @JsonView(Floor.Views.Base.class)
     private Floor floor;
 
     @Column(name = "room_number")
-    @JsonView(Floor.Views.Base.class)
     private String roomNumber;
 
-    @JsonView(Floor.Views.Base.class)
     private String name;
 
     @Column(name = "created_at")
-    @JsonView(Floor.Views.Base.class)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("room")
-    @JsonView(Floor.Views.Base.class)
     private Set<Seat> seats = new HashSet<>();
 
     public Long getId() {

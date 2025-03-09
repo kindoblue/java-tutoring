@@ -118,6 +118,7 @@ public abstract class BaseResourceTest extends JerseyTest {
         session.createNativeQuery("TRUNCATE TABLE employees").executeUpdate();
         session.createNativeQuery("TRUNCATE TABLE office_rooms").executeUpdate();
         session.createNativeQuery("TRUNCATE TABLE floors").executeUpdate();
+        session.createNativeQuery("TRUNCATE TABLE floor_planimetry").executeUpdate();
         
         // Reset sequences
         session.createNativeQuery("ALTER SEQUENCE seat_seq RESTART WITH 1").executeUpdate();
