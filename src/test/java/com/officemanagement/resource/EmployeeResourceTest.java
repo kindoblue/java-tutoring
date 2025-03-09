@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;

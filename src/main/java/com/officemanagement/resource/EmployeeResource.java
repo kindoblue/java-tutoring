@@ -1,7 +1,6 @@
 package com.officemanagement.resource;
 
 import com.officemanagement.model.Employee;
-import com.officemanagement.model.Floor;
 import com.officemanagement.model.Seat;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
