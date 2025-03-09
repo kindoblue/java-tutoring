@@ -9,8 +9,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import com.officemanagement.util.HibernateUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.officemanagement.model.Seat;
 
 @Path("/stats") // Base path for all stats-related endpoints
 public class StatsResource {
@@ -45,7 +43,6 @@ public class StatsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON) // Return JSON response
-    @JsonView(Seat.Views.Full.class)
     public Response getStats() {
         Session session = null;
         try {

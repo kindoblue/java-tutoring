@@ -1,6 +1,5 @@
 package com.officemanagement.resource;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import com.officemanagement.model.Employee;
 import com.officemanagement.model.Seat;
 import com.officemanagement.util.HibernateUtil;
@@ -56,12 +55,12 @@ public class EmployeeResource {
 
     @GET
     @Path("/{id}")
-    @JsonView(Seat.Views.AsEmployeeSeat.class)
     public Response getEmployee(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             Employee employee = session.createQuery(
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
+                "left join fetch s.room r " +
                 "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
@@ -77,12 +76,12 @@ public class EmployeeResource {
 
     @GET
     @Path("/{id}/seats")
-    @JsonView(Seat.Views.AsEmployeeSeat.class)
     public Response getEmployeeSeats(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             Employee employee = session.createQuery(
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
+                "left join fetch s.room r " +
                 "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
@@ -122,7 +121,6 @@ public class EmployeeResource {
 
     @PUT
     @Path("/{id}/assign-seat/{seatId}")
-    @JsonView(Seat.Views.AsEmployeeSeat.class)
     public Response assignSeat(@PathParam("id") Long employeeId, @PathParam("seatId") Long seatId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -170,6 +168,7 @@ public class EmployeeResource {
             Employee refreshedEmployee = session.createQuery(
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
+                "left join fetch s.room r " +
                 "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
@@ -182,7 +181,6 @@ public class EmployeeResource {
 
     @DELETE
     @Path("/{employeeId}/unassign-seat/{seatId}")
-    @JsonView(Seat.Views.AsEmployeeSeat.class)
     public Response unassignSeat(@PathParam("employeeId") Long employeeId, @PathParam("seatId") Long seatId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -222,6 +220,7 @@ public class EmployeeResource {
             Employee refreshedEmployee = session.createQuery(
                 "select distinct e from Employee e " +
                 "left join fetch e.seats s " +
+                "left join fetch s.room r " +
                 "left join fetch s.employees " +
                 "where e.id = :id", 
                 Employee.class)
@@ -269,7 +268,6 @@ public class EmployeeResource {
 
     @GET
     @Path("/search")
-    @JsonView(Seat.Views.AsEmployeeSeat.class)
     public Response searchEmployees(
             @QueryParam("search") @DefaultValue("") String searchTerm,
             @QueryParam("page") @DefaultValue("0") int page,
@@ -309,6 +307,7 @@ public class EmployeeResource {
             // Create the main query with pagination
             String query = "select distinct e from Employee e " +
                     "left join fetch e.seats s " +
+                    "left join fetch s.room r " +
                     "left join fetch s.employees " +
                     "where lower(e.fullName) like lower(:searchTerm) " +
                     "or lower(e.occupation) like lower(:searchTerm)";

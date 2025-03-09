@@ -1,6 +1,5 @@
 package com.officemanagement.resource;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import com.officemanagement.model.Seat;
 import com.officemanagement.model.OfficeRoom;
 import com.officemanagement.model.Employee;
@@ -27,7 +26,6 @@ public class SeatResource {
 
     @GET
     @Path("/{id}")
-    @JsonView(Seat.Views.Full.class)
     public Response getSeat(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             // Using join fetch to eagerly load the employees collection
@@ -48,7 +46,6 @@ public class SeatResource {
     }
 
     @POST
-    @JsonView(Seat.Views.Full.class)
     public Response createSeat(Seat seat) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -117,7 +114,6 @@ public class SeatResource {
 
     @PUT
     @Path("/{id}")
-    @JsonView(Seat.Views.Full.class)
     public Response updateSeat(@PathParam("id") Long id, Seat updatedSeat) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
