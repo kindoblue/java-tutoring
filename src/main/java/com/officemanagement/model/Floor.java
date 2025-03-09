@@ -1,6 +1,7 @@
 package com.officemanagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -9,25 +10,42 @@ import java.util.Set;
 @Entity
 @Table(name = "floors")
 public class Floor {
+    /**
+     * JSON Views for controlling serialization of entities
+     */
+    public static class Views {
+        // Base view with common properties
+        public static class Base {}
+        
+        // Extended view that includes planimetry data
+        public static class WithPlanimetry extends Base {}
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "floor_seq")
     @SequenceGenerator(name = "floor_seq", sequenceName = "floor_seq", allocationSize = 1)
     @Column(name = "id", nullable = false, updatable = false)
+    @JsonView(Views.Base.class)
     private Long id;
 
     @Column(name = "floor_number")
+    @JsonView(Views.Base.class)
     private Integer floorNumber;
 
+    @JsonView(Views.Base.class)
     private String name;
     
     @Column(name = "floor_plan")
+    @JsonView(Views.WithPlanimetry.class) // Only include in WithPlanimetry view
     private String planimetry;
 
     @Column(name = "created_at")
+    @JsonView(Views.Base.class)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "floor", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("floor")
+    @JsonView(Views.Base.class)
     private Set<OfficeRoom> rooms = new HashSet<>();
 
     // Default constructor required by JPA/Hibernate

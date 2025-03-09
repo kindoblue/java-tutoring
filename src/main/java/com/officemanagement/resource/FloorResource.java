@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonView;
 
 @Path("/floors")
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,6 +25,7 @@ public class FloorResource {
     }
 
     @GET
+    @JsonView(Floor.Views.Base.class)
     public Response getAllFloors() {
         try (Session session = sessionFactory.openSession()) {
             List<Floor> floors = session.createQuery(
@@ -35,6 +37,7 @@ public class FloorResource {
 
     @GET
     @Path("/{id}")
+    @JsonView(Floor.Views.Base.class)
     public Response getFloor(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             // Using criteria to fetch the floor and its associations
@@ -51,9 +54,6 @@ public class FloorResource {
             if (floor == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-
-            // Set planimetry to null to exclude it from the response
-            floor.setPlanimetry(null);
 
             return Response.ok(floor).build();
         }
@@ -81,6 +81,7 @@ public class FloorResource {
     }
 
     @POST
+    @JsonView(Floor.Views.Base.class)
     public Response createFloor(Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
@@ -118,6 +119,7 @@ public class FloorResource {
 
     @PUT
     @Path("/{id}")
+    @JsonView(Floor.Views.Base.class)
     public Response updateFloor(@PathParam("id") Long id, Floor floor) {
         // Validate input
         if (floor == null || floor.getName() == null || floor.getName().trim().isEmpty()) {
