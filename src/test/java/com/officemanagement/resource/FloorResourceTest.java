@@ -1,6 +1,7 @@
 package com.officemanagement.resource;
 
 import com.officemanagement.model.Floor;
+import com.officemanagement.model.FloorPlanimetry;
 import com.officemanagement.model.OfficeRoom;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
@@ -274,6 +275,76 @@ public class FloorResourceTest extends BaseResourceTest {
             .post(getApiPath("/floors"))
         .then()
             .statusCode(Response.Status.CONFLICT.getStatusCode());
+    }
+
+    @Test
+    public void testGetFloorPlan() {
+        // First create a floor
+        Floor floor = new Floor();
+        floor.setName("Floor with SVG");
+        floor.setFloorNumber(10);
+        floor.setCreatedAt(LocalDateTime.now());
+        
+        // Save the floor and get its ID
+        session.save(floor);
+        commitAndStartNewTransaction();
+        Long floorId = floor.getId();
+        
+        // Create and save a planimetry for the floor
+        String svgContent = "<svg width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\" style=\"fill:blue\"/></svg>";
+        FloorPlanimetry planimetry = new FloorPlanimetry(floor, svgContent);
+        session.save(planimetry);
+        commitAndStartNewTransaction();
+        
+        // Test getting the floor planimetry
+        given()
+        .when()
+            .get(getApiPath("/floors/" + floorId + "/svg"))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .contentType("image/svg+xml")
+            .header("Content-Disposition", containsString("inline; filename=floor" + floorId + ".svg"))
+            .body(equalTo(svgContent));
+            
+        // Test getting non-existent floor planimetry
+        given()
+        .when()
+            .get(getApiPath("/floors/9999/svg"))
+        .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateFloorPlan() {
+        // First create a floor
+        Floor floor = new Floor();
+        floor.setName("Floor with SVG");
+        floor.setFloorNumber(11);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+        commitAndStartNewTransaction();
+        Long floorId = floor.getId();
+        
+        // Create the SVG content
+        String svgContent = "<svg width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\" style=\"fill:red\"/></svg>";
+        
+        // Update the floor plan
+        given()
+            .contentType("text/plain")
+            .body(svgContent)
+        .when()
+            .put(getApiPath("/floors/" + floorId + "/svg"))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+        
+        // Verify the floor plan was updated
+        given()
+        .when()
+            .get(getApiPath("/floors/" + floorId + "/svg"))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .contentType("image/svg+xml")
+            .body(equalTo(svgContent));
     }
 
     private void createTestFloor(String name, int floorNumber) {

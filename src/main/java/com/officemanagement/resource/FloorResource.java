@@ -59,7 +59,7 @@ public class FloorResource {
 
     @GET
     @Path("/{id}/svg")
-    @Produces(MediaType.APPLICATION_XML)
+    @Produces("image/svg+xml")
     public Response getFloorPlan(@PathParam("id") Long id) {
         try (Session session = sessionFactory.openSession()) {
             // Query the floor_planimetry table directly
@@ -69,11 +69,14 @@ public class FloorResource {
                     .uniqueResult();
 
             if (planimetry == null || planimetry.isEmpty()) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("No floor plan found for floor ID: " + id)
+                        .type(MediaType.TEXT_PLAIN)
+                        .build();
             }
 
             return Response.ok(planimetry)
-                    .type("image/svg+xml")
+                    .header(HttpHeaders.CONTENT_TYPE, "image/svg+xml")
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=floor" + id + ".svg")
                     .build();
         }

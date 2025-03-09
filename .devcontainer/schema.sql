@@ -225,7 +225,7 @@ BEGIN
     -- Insert or update the planimetry record
     INSERT INTO floor_planimetry (floor_id, planimetry, last_updated)
     VALUES (floor_id, svg_data, CURRENT_TIMESTAMP)
-    ON CONFLICT (floor_id) 
+    ON CONFLICT ON CONSTRAINT floor_planimetry_pkey 
     DO UPDATE SET 
         planimetry = EXCLUDED.planimetry,
         last_updated = CURRENT_TIMESTAMP;
