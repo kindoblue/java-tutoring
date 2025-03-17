@@ -24,8 +24,6 @@ public class JerseyConfig extends ResourceConfig {
     }
     
     private void registerCustomMediaTypes() {
-        // Register SVG media type
-        MediaType svgType = new MediaType("image", "svg+xml");
         // This is needed for proper content negotiation
         property("jersey.config.server.mediaTypeMappings.svg", "image/svg+xml");
     }

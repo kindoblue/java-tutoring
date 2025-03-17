@@ -10,6 +10,8 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 
 public class RoomResourceTest extends BaseResourceTest {
@@ -142,5 +144,109 @@ public class RoomResourceTest extends BaseResourceTest {
             .delete(getApiPath("/rooms/" + room.getId()))
         .then()
             .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void testGetRoomDoesNotIncludePlanimetry() {
+        // Create test data
+        Floor floor = new Floor();
+        floor.setName("Test Floor");
+        floor.setFloorNumber(1);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+        
+        // Commit transaction to ensure floor is persisted before adding planimetry
+        commitAndStartNewTransaction();
+        
+        // Add planimetry data to the floor
+        String planimetryData = "{\"width\":800,\"height\":600,\"background\":\"#f5f5f5\"}";
+        session.createNativeQuery(
+            "INSERT INTO floor_planimetry (floor_id, last_updated, planimetry) VALUES (?, ?, ?)")
+            .setParameter(1, floor.getId())
+            .setParameter(2, LocalDateTime.now())
+            .setParameter(3, planimetryData)
+            .executeUpdate();
+
+        OfficeRoom room = new OfficeRoom();
+        room.setName("Test Room");
+        room.setRoomNumber("101");
+        room.setFloor(floor);
+        room.setCreatedAt(LocalDateTime.now());
+        session.save(room);
+        
+        Seat seat = new Seat();
+        seat.setSeatNumber("A1");
+        seat.setRoom(room);
+        seat.setCreatedAt(LocalDateTime.now());
+        session.save(seat);
+        
+        commitAndStartNewTransaction();
+
+        // Get the room and verify that it doesn't include planimetry data
+        given()
+            .contentType(ContentType.JSON)
+        .when()
+            .get(getApiPath("/rooms/" + room.getId()))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .body("id", equalTo(room.getId().intValue()))
+            .body("name", equalTo(room.getName()))
+            .body("roomNumber", equalTo(room.getRoomNumber()))
+            .body("floor.id", equalTo(floor.getId().intValue()))
+            .body("floor.name", equalTo(floor.getName()))
+            .body("floor.floorNumber", equalTo(floor.getFloorNumber()))
+            // Verify that planimetry is not included
+            .body("floor.planimetry", nullValue());
+    }
+
+    @Test
+    public void testGetRoomSeatsDoesNotIncludePlanimetry() {
+        // Create test data
+        Floor floor = new Floor();
+        floor.setName("Test Floor");
+        floor.setFloorNumber(1);
+        floor.setCreatedAt(LocalDateTime.now());
+        session.save(floor);
+        
+        // Commit transaction to ensure floor is persisted before adding planimetry
+        commitAndStartNewTransaction();
+        
+        // Add planimetry data to the floor
+        String planimetryData = "{\"width\":800,\"height\":600,\"background\":\"#f5f5f5\"}";
+        session.createNativeQuery(
+            "INSERT INTO floor_planimetry (floor_id, last_updated, planimetry) VALUES (?, ?, ?)")
+            .setParameter(1, floor.getId())
+            .setParameter(2, LocalDateTime.now())
+            .setParameter(3, planimetryData)
+            .executeUpdate();
+
+        OfficeRoom room = new OfficeRoom();
+        room.setName("Test Room");
+        room.setRoomNumber("101");
+        room.setFloor(floor);
+        room.setCreatedAt(LocalDateTime.now());
+        session.save(room);
+        
+        Seat seat = new Seat();
+        seat.setSeatNumber("A1");
+        seat.setRoom(room);
+        seat.setCreatedAt(LocalDateTime.now());
+        session.save(seat);
+        
+        commitAndStartNewTransaction();
+
+        // Get the room seats and verify the response format
+        given()
+            .contentType(ContentType.JSON)
+        .when()
+            .get(getApiPath("/rooms/" + room.getId() + "/seats"))
+        .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .body("[0].id", equalTo(seat.getId().intValue()))
+            .body("[0].seatNumber", equalTo(seat.getSeatNumber()))
+            .body("[0].roomId", equalTo(room.getId().intValue()))
+            // Verify that no planimetry or room object is included
+            .body("[0].room", nullValue())
+            .body("[0].planimetry", nullValue());
     }
 } 

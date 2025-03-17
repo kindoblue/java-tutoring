@@ -100,7 +100,53 @@ public class RoomResource {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             
-            return Response.ok(room).build();
+            // Create a custom response that excludes the floor's planimetry data
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", room.getId());
+            response.put("name", room.getName());
+            response.put("roomNumber", room.getRoomNumber());
+            response.put("x", room.getX());
+            response.put("y", room.getY());
+            response.put("width", room.getWidth());
+            response.put("height", room.getHeight());
+            response.put("createdAt", room.getCreatedAt());
+            
+            // Include floor details but exclude planimetry
+            if (room.getFloor() != null) {
+                Map<String, Object> floorInfo = new HashMap<>();
+                floorInfo.put("id", room.getFloor().getId());
+                floorInfo.put("name", room.getFloor().getName());
+                floorInfo.put("floorNumber", room.getFloor().getFloorNumber());
+                response.put("floor", floorInfo);
+            }
+            
+            // Include seats
+            if (room.getSeats() != null && !room.getSeats().isEmpty()) {
+                Set<Map<String, Object>> seatsList = new java.util.HashSet<>();
+                for (Seat seat : room.getSeats()) {
+                    Map<String, Object> seatInfo = new HashMap<>();
+                    seatInfo.put("id", seat.getId());
+                    seatInfo.put("seatNumber", seat.getSeatNumber());
+                    seatInfo.put("x", seat.getX());
+                    seatInfo.put("y", seat.getY());
+                    seatInfo.put("width", seat.getWidth());
+                    seatInfo.put("height", seat.getHeight());
+                    seatInfo.put("rotation", seat.getRotation());
+                    
+                    // Include employee IDs if any are assigned to this seat
+                    if (seat.getEmployees() != null && !seat.getEmployees().isEmpty()) {
+                        Set<Long> employeeIds = seat.getEmployees().stream()
+                            .map(employee -> employee.getId())
+                            .collect(java.util.stream.Collectors.toSet());
+                        seatInfo.put("employeeIds", employeeIds);
+                    }
+                    
+                    seatsList.add(seatInfo);
+                }
+                response.put("seats", seatsList);
+            }
+            
+            return Response.ok(response).build();
         }
     }
 
@@ -120,7 +166,26 @@ public class RoomResource {
             }
             
             Set<Seat> seats = room.getSeats();
-            return Response.ok(seats).build();
+            
+            // Create a custom response with just the seat data
+            Set<Map<String, Object>> seatsList = new java.util.HashSet<>();
+            if (seats != null) {
+                for (Seat seat : seats) {
+                    Map<String, Object> seatInfo = new HashMap<>();
+                    seatInfo.put("id", seat.getId());
+                    seatInfo.put("seatNumber", seat.getSeatNumber());
+                    seatInfo.put("x", seat.getX());
+                    seatInfo.put("y", seat.getY());
+                    seatInfo.put("width", seat.getWidth());
+                    seatInfo.put("height", seat.getHeight());
+                    seatInfo.put("rotation", seat.getRotation());
+                    seatInfo.put("roomId", id);
+                    
+                    seatsList.add(seatInfo);
+                }
+            }
+            
+            return Response.ok(seatsList).build();
         }
     }
 
@@ -243,99 +308,35 @@ public class RoomResource {
             }
             
             // Update room geometry
-            if (geometryData.containsKey("x")) {
-                Object xValue = geometryData.get("x");
-                if (xValue instanceof Number) {
-                    room.setX(((Number) xValue).floatValue());
-                }
-            }
-            
-            if (geometryData.containsKey("y")) {
-                Object yValue = geometryData.get("y");
-                if (yValue instanceof Number) {
-                    room.setY(((Number) yValue).floatValue());
-                }
-            }
-            
-            if (geometryData.containsKey("width")) {
-                Object widthValue = geometryData.get("width");
-                if (widthValue instanceof Number) {
-                    room.setWidth(((Number) widthValue).floatValue());
-                }
-            }
-            
-            if (geometryData.containsKey("height")) {
-                Object heightValue = geometryData.get("height");
-                if (heightValue instanceof Number) {
-                    room.setHeight(((Number) heightValue).floatValue());
-                }
-            }
-            
+            updateGeometryProperties(room, geometryData);
             session.update(room);
             
             // Check if seat geometries were provided
-            if (geometryData.containsKey("seats")) {
-                Object seatsObject = geometryData.get("seats");
-                if (seatsObject instanceof Map) {
-                    Map<?, ?> seatsMap = (Map<?, ?>) seatsObject;
+            if (geometryData.containsKey("seats") && geometryData.get("seats") instanceof Map) {
+                Map<?, ?> seatsMap = (Map<?, ?>) geometryData.get("seats");
+                
+                // Process each seat
+                for (Map.Entry<?, ?> entry : seatsMap.entrySet()) {
+                    if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Map)) {
+                        continue; // Skip invalid entries
+                    }
                     
-                    // Process each seat
-                    for (Map.Entry<?, ?> entry : seatsMap.entrySet()) {
-                        if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Map)) {
-                            continue; // Skip invalid entries
-                        }
-                        
-                        String seatIdStr = (String) entry.getKey();
-                        Map<String, Object> seatGeometry = (Map<String, Object>) entry.getValue();
-                        
-                        Long seatId;
-                        try {
-                            seatId = Long.parseLong(seatIdStr);
-                        } catch (NumberFormatException e) {
-                            continue; // Skip invalid seat IDs
-                        }
-                        
-                        // Find the seat and verify it belongs to this room
-                        Seat seat = session.get(Seat.class, seatId);
-                        if (seat != null && seat.getRoom().getId().equals(id)) {
-                            // Update seat geometry
-                            if (seatGeometry.containsKey("x")) {
-                                Object xValue = seatGeometry.get("x");
-                                if (xValue instanceof Number) {
-                                    seat.setX(((Number) xValue).floatValue());
-                                }
-                            }
-                            
-                            if (seatGeometry.containsKey("y")) {
-                                Object yValue = seatGeometry.get("y");
-                                if (yValue instanceof Number) {
-                                    seat.setY(((Number) yValue).floatValue());
-                                }
-                            }
-                            
-                            if (seatGeometry.containsKey("width")) {
-                                Object widthValue = seatGeometry.get("width");
-                                if (widthValue instanceof Number) {
-                                    seat.setWidth(((Number) widthValue).floatValue());
-                                }
-                            }
-                            
-                            if (seatGeometry.containsKey("height")) {
-                                Object heightValue = seatGeometry.get("height");
-                                if (heightValue instanceof Number) {
-                                    seat.setHeight(((Number) heightValue).floatValue());
-                                }
-                            }
-                            
-                            if (seatGeometry.containsKey("rotation")) {
-                                Object rotationValue = seatGeometry.get("rotation");
-                                if (rotationValue instanceof Number) {
-                                    seat.setRotation(((Number) rotationValue).floatValue());
-                                }
-                            }
-                            
-                            session.update(seat);
-                        }
+                    String seatIdStr = (String) entry.getKey();
+                    Map<String, Object> seatGeometry = (Map<String, Object>) entry.getValue();
+                    
+                    Long seatId;
+                    try {
+                        seatId = Long.parseLong(seatIdStr);
+                    } catch (NumberFormatException e) {
+                        continue; // Skip invalid seat IDs
+                    }
+                    
+                    // Find the seat and verify it belongs to this room
+                    Seat seat = session.get(Seat.class, seatId);
+                    if (seat != null && seat.getRoom().getId().equals(id)) {
+                        // Update seat geometry
+                        updateGeometryProperties(seat, seatGeometry);
+                        session.update(seat);
                     }
                 }
             }
@@ -385,5 +386,57 @@ public class RoomResource {
                 session.close();
             }
         }
+    }
+    
+    /**
+     * Helper method to extract a float value from a geometry data map
+     */
+    private Float getFloatValue(Map<String, Object> geometryData, String key) {
+        if (!geometryData.containsKey(key)) {
+            return null;
+        }
+        
+        Object value = geometryData.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).floatValue();
+        }
+        return null;
+    }
+    
+    /**
+     * Update geometry properties for a room
+     */
+    private void updateGeometryProperties(OfficeRoom room, Map<String, Object> geometryData) {
+        Float x = getFloatValue(geometryData, "x");
+        if (x != null) room.setX(x);
+        
+        Float y = getFloatValue(geometryData, "y");
+        if (y != null) room.setY(y);
+        
+        Float width = getFloatValue(geometryData, "width");
+        if (width != null) room.setWidth(width);
+        
+        Float height = getFloatValue(geometryData, "height");
+        if (height != null) room.setHeight(height);
+    }
+    
+    /**
+     * Update geometry properties for a seat
+     */
+    private void updateGeometryProperties(Seat seat, Map<String, Object> geometryData) {
+        Float x = getFloatValue(geometryData, "x");
+        if (x != null) seat.setX(x);
+        
+        Float y = getFloatValue(geometryData, "y");
+        if (y != null) seat.setY(y);
+        
+        Float width = getFloatValue(geometryData, "width");
+        if (width != null) seat.setWidth(width);
+        
+        Float height = getFloatValue(geometryData, "height");
+        if (height != null) seat.setHeight(height);
+        
+        Float rotation = getFloatValue(geometryData, "rotation");
+        if (rotation != null) seat.setRotation(rotation);
     }
 } 
