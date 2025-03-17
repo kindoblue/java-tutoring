@@ -43,6 +43,10 @@ CREATE TABLE office_rooms (
     room_number VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     floor_id BIGINT REFERENCES floors(id),
+    x FLOAT DEFAULT 0,
+    y FLOAT DEFAULT 0,
+    width FLOAT DEFAULT 300,
+    height FLOAT DEFAULT 200,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -58,6 +62,11 @@ CREATE TABLE seats (
     seat_number VARCHAR(255) NOT NULL,
     room_id BIGINT REFERENCES office_rooms(id),
     employee_id BIGINT REFERENCES employees(id), -- add UNIQUE if the employee can only have one seat
+    x FLOAT DEFAULT 0,
+    y FLOAT DEFAULT 0,
+    width FLOAT DEFAULT 100,
+    height FLOAT DEFAULT 100,
+    rotation FLOAT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
