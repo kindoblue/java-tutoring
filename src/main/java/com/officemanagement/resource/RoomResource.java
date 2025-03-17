@@ -322,6 +322,7 @@ public class RoomResource {
                     }
                     
                     String seatIdStr = (String) entry.getKey();
+                    @SuppressWarnings("unchecked")
                     Map<String, Object> seatGeometry = (Map<String, Object>) entry.getValue();
                     
                     Long seatId;
@@ -349,7 +350,9 @@ public class RoomResource {
                 .setParameter("id", id)
                 .uniqueResult();
                 
-            // Create a simplified response object with just the room properties and seat IDs
+            // Create a simplified response object to:
+            // 1. Prevent serialization cycles in bidirectional relationships
+            // 2. Control the exact shape of the API response
             Map<String, Object> response = new HashMap<>();
             response.put("id", updatedRoom.getId());
             response.put("name", updatedRoom.getName());
@@ -359,7 +362,8 @@ public class RoomResource {
             response.put("width", updatedRoom.getWidth());
             response.put("height", updatedRoom.getHeight());
             
-            // Query the seats separately to avoid lazy loading issues
+            // Query the seats separately to ensure all data is loaded before session closes
+            // This prevents LazyInitializationException when accessing the collection later
             Set<Seat> seats = session.createQuery(
                 "SELECT s FROM Seat s WHERE s.room.id = :roomId", Seat.class)
                 .setParameter("roomId", id)
