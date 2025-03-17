@@ -6,7 +6,6 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.MediaType;
 
 @ApplicationPath("/api")
 public class JerseyConfig extends ResourceConfig {
