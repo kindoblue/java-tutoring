@@ -6,12 +6,15 @@ import com.officemanagement.model.Floor;
 import com.officemanagement.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 
 @Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
@@ -218,6 +221,169 @@ public class RoomResource {
             session.getTransaction().commit();
             
             return Response.noContent().build();
+        }
+    }
+
+    @PATCH
+    @Path("/{id}/geometry")
+    public Response updateRoomGeometry(@PathParam("id") Long id, Map<String, Object> geometryData) {
+        Session session = null;
+        Transaction transaction = null;
+        
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
+            
+            // Check if room exists
+            OfficeRoom room = session.get(OfficeRoom.class, id);
+            if (room == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Room not found")
+                    .build();
+            }
+            
+            // Update room geometry
+            if (geometryData.containsKey("x")) {
+                Object xValue = geometryData.get("x");
+                if (xValue instanceof Number) {
+                    room.setX(((Number) xValue).floatValue());
+                }
+            }
+            
+            if (geometryData.containsKey("y")) {
+                Object yValue = geometryData.get("y");
+                if (yValue instanceof Number) {
+                    room.setY(((Number) yValue).floatValue());
+                }
+            }
+            
+            if (geometryData.containsKey("width")) {
+                Object widthValue = geometryData.get("width");
+                if (widthValue instanceof Number) {
+                    room.setWidth(((Number) widthValue).floatValue());
+                }
+            }
+            
+            if (geometryData.containsKey("height")) {
+                Object heightValue = geometryData.get("height");
+                if (heightValue instanceof Number) {
+                    room.setHeight(((Number) heightValue).floatValue());
+                }
+            }
+            
+            session.update(room);
+            
+            // Check if seat geometries were provided
+            if (geometryData.containsKey("seats")) {
+                Object seatsObject = geometryData.get("seats");
+                if (seatsObject instanceof Map) {
+                    Map<?, ?> seatsMap = (Map<?, ?>) seatsObject;
+                    
+                    // Process each seat
+                    for (Map.Entry<?, ?> entry : seatsMap.entrySet()) {
+                        if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Map)) {
+                            continue; // Skip invalid entries
+                        }
+                        
+                        String seatIdStr = (String) entry.getKey();
+                        Map<String, Object> seatGeometry = (Map<String, Object>) entry.getValue();
+                        
+                        Long seatId;
+                        try {
+                            seatId = Long.parseLong(seatIdStr);
+                        } catch (NumberFormatException e) {
+                            continue; // Skip invalid seat IDs
+                        }
+                        
+                        // Find the seat and verify it belongs to this room
+                        Seat seat = session.get(Seat.class, seatId);
+                        if (seat != null && seat.getRoom().getId().equals(id)) {
+                            // Update seat geometry
+                            if (seatGeometry.containsKey("x")) {
+                                Object xValue = seatGeometry.get("x");
+                                if (xValue instanceof Number) {
+                                    seat.setX(((Number) xValue).floatValue());
+                                }
+                            }
+                            
+                            if (seatGeometry.containsKey("y")) {
+                                Object yValue = seatGeometry.get("y");
+                                if (yValue instanceof Number) {
+                                    seat.setY(((Number) yValue).floatValue());
+                                }
+                            }
+                            
+                            if (seatGeometry.containsKey("width")) {
+                                Object widthValue = seatGeometry.get("width");
+                                if (widthValue instanceof Number) {
+                                    seat.setWidth(((Number) widthValue).floatValue());
+                                }
+                            }
+                            
+                            if (seatGeometry.containsKey("height")) {
+                                Object heightValue = seatGeometry.get("height");
+                                if (heightValue instanceof Number) {
+                                    seat.setHeight(((Number) heightValue).floatValue());
+                                }
+                            }
+                            
+                            if (seatGeometry.containsKey("rotation")) {
+                                Object rotationValue = seatGeometry.get("rotation");
+                                if (rotationValue instanceof Number) {
+                                    seat.setRotation(((Number) rotationValue).floatValue());
+                                }
+                            }
+                            
+                            session.update(seat);
+                        }
+                    }
+                }
+            }
+            
+            transaction.commit();
+            
+            // Query the room again to return fresh data
+            OfficeRoom updatedRoom = session.createQuery(
+                "SELECT r FROM OfficeRoom r WHERE r.id = :id", OfficeRoom.class)
+                .setParameter("id", id)
+                .uniqueResult();
+                
+            // Create a simplified response object with just the room properties and seat IDs
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", updatedRoom.getId());
+            response.put("name", updatedRoom.getName());
+            response.put("roomNumber", updatedRoom.getRoomNumber());
+            response.put("x", updatedRoom.getX());
+            response.put("y", updatedRoom.getY());
+            response.put("width", updatedRoom.getWidth());
+            response.put("height", updatedRoom.getHeight());
+            
+            // Query the seats separately to avoid lazy loading issues
+            Set<Seat> seats = session.createQuery(
+                "SELECT s FROM Seat s WHERE s.room.id = :roomId", Seat.class)
+                .setParameter("roomId", id)
+                .getResultList()
+                .stream()
+                .collect(java.util.stream.Collectors.toSet());
+                
+            if (seats != null && !seats.isEmpty()) {
+                // Add seat IDs to the response
+                response.put("seats", seats.size());
+            }
+            
+            return Response.ok(response).build();
+            
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Error updating geometry: " + e.getMessage())
+                .build();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 } 

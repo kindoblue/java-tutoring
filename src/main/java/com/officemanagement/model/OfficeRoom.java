@@ -25,6 +25,18 @@ public class OfficeRoom {
 
     private String name;
 
+    @Column(name = "x")
+    private Float x = 0f;
+
+    @Column(name = "y")
+    private Float y = 0f;
+
+    @Column(name = "width")
+    private Float width = 300f;
+
+    @Column(name = "height")
+    private Float height = 200f;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -62,6 +74,38 @@ public class OfficeRoom {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Float getX() {
+        return x;
+    }
+
+    public void setX(Float x) {
+        this.x = x;
+    }
+
+    public Float getY() {
+        return y;
+    }
+
+    public void setY(Float y) {
+        this.y = y;
+    }
+
+    public Float getWidth() {
+        return width;
+    }
+
+    public void setWidth(Float width) {
+        this.width = width;
+    }
+
+    public Float getHeight() {
+        return height;
+    }
+
+    public void setHeight(Float height) {
+        this.height = height;
     }
 
     public LocalDateTime getCreatedAt() {

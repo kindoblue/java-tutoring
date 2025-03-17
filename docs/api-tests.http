@@ -91,6 +91,30 @@ Content-Type: application/json
 DELETE http://localhost:8080/api/rooms/1
 # Will fail if room has any seats
 
+### Update room geometry
+PATCH http://localhost:8080/api/rooms/1/geometry
+Content-Type: application/json
+
+{
+    "x": 150,
+    "y": 200,
+    "width": 350,
+    "height": 250,
+    "seats": {
+        "1": {
+            "x": 170,
+            "y": 220,
+            "rotation": 45
+        },
+        "2": {
+            "x": 260,
+            "y": 220,
+            "width": 80,
+            "height": 80
+        }
+    }
+}
+
 # Seat Resource Operations
 ### Get all seats
 GET http://localhost:8080/api/seats
