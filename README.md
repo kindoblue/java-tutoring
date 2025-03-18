@@ -169,6 +169,19 @@ This will:
 - `DELETE /api/rooms/{id}` - Delete a room
   - Response: 204 No Content
   - Error: 400 Bad Request if room has seats
+- `PATCH /api/rooms/{id}/geometry` - Update room and seat positions/dimensions
+  - Request Body: 
+    ```
+    {
+      "x": 100, "y": 200, "width": 500, "height": 300,
+      "seats": {
+        "1": {"x": 120, "y": 220, "width": 50, "height": 50, "rotation": 0},
+        "2": {"x": 180, "y": 220, "width": 50, "height": 50, "rotation": 0}
+      }
+    }
+    ```
+  - Response: Updated room with seat count
+  - Note: Only specified properties will be updated; missing properties remain unchanged
 
 ### Seats
 - `GET /api/seats/{id}` - Get seat details
@@ -266,6 +279,24 @@ curl -X PUT http://localhost:8080/api/employees/1/assign-seat/1
 
 # Unassign a seat
 curl -X DELETE http://localhost:8080/api/employees/1/unassign-seat/1
+```
+
+### Room and Seat Geometry
+
+```bash
+# Update room and seat geometry
+curl -X PATCH http://localhost:8080/api/rooms/1/geometry \
+-H "Content-Type: application/json" \
+-d '{
+  "x": 100, 
+  "y": 200, 
+  "width": 500, 
+  "height": 300,
+  "seats": {
+    "1": {"x": 120, "y": 220, "width": 50, "height": 50, "rotation": 0},
+    "2": {"x": 180, "y": 220, "width": 50, "height": 50, "rotation": 90}
+  }
+}'
 ```
 
 ### Office Statistics
