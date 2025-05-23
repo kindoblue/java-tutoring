@@ -159,8 +159,21 @@ public class FloorResource {
             existingFloor.setName(floor.getName());
             existingFloor.setFloorNumber(floor.getFloorNumber());
             session.update(existingFloor);
+            
+            // Fetch the floor with all associations BEFORE committing the transaction
+            // This prevents LazyInitializationException during JSON serialization
+            Floor updatedFloor = session.createQuery(
+                    "select distinct f from Floor f " +
+                            "left join fetch f.rooms r " +
+                            "left join fetch r.seats s " +
+                            "left join fetch s.employees " +
+                            "where f.id = :id",
+                    Floor.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
+            
             session.getTransaction().commit();
-            return Response.ok(existingFloor).build();
+            return Response.ok(updatedFloor).build();
         }
     }
 

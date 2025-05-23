@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.List;
 
 @Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,6 +25,19 @@ public class RoomResource {
 
     public RoomResource() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
+    }
+
+    @GET
+    public Response getAllRooms() {
+        try (Session session = sessionFactory.openSession()) {
+            List<OfficeRoom> rooms = session.createQuery(
+                    "select distinct r from OfficeRoom r " +
+                            "left join fetch r.floor f " +
+                            "left join fetch r.seats s " +
+                            "left join fetch s.employees",
+                    OfficeRoom.class).list();
+            return Response.ok(rooms).build();
+        }
     }
 
     @POST
