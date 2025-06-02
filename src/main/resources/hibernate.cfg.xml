@@ -18,7 +18,7 @@
         <property name="hibernate.format_sql">true</property>
 
         <!-- Create/update database schema on startup -->
-        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.hbm2ddl.auto">validate</property>
 
         <!-- Mapping files -->
         <mapping class="com.officemanagement.model.Floor"/>
